@@ -1,0 +1,280 @@
+<UserControl x:Class="NEXUS.Views.SystemView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:ctrl="clr-namespace:NEXUS.Controls">
+
+    <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="28,0,20,24">
+        <Grid Margin="0,0,8,0">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="*" />
+            </Grid.RowDefinitions>
+
+            <!-- ============ LIVE LOAD ============ -->
+            <Border Grid.Row="0" Style="{StaticResource Panel}" Padding="20,18">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+
+                    <StackPanel Grid.Column="0" Margin="0,0,32,0">
+                        <ctrl:RingGauge Width="104" Height="104"
+                                        Value="{Binding Info.CpuLoad}"
+                                        RingThickness="9"
+                                        TrackBrush="{StaticResource BrushBorderSoft}"
+                                        ValueBrush="{Binding Info.CpuBrushKey, Converter={StaticResource ResBrush}}" />
+                        <TextBlock Text="{Binding Info.CpuPercent}" Style="{StaticResource Mono}" FontSize="16"
+                                   FontWeight="SemiBold" HorizontalAlignment="Center" Margin="0,10,0,0" />
+                        <TextBlock Style="{StaticResource MetricLabel}" HorizontalAlignment="Center"
+                                   ctrl:Tracking.Text="PROCESSOR" />
+                    </StackPanel>
+
+                    <StackPanel Grid.Column="1" Margin="0,0,32,0">
+                        <ctrl:RingGauge Width="104" Height="104"
+                                        Value="{Binding Info.MemoryLoad}"
+                                        RingThickness="9"
+                                        TrackBrush="{StaticResource BrushBorderSoft}"
+                                        ValueBrush="{Binding Info.MemoryBrushKey, Converter={StaticResource ResBrush}}" />
+                        <TextBlock Text="{Binding Info.MemoryPercent}" Style="{StaticResource Mono}" FontSize="16"
+                                   FontWeight="SemiBold" HorizontalAlignment="Center" Margin="0,10,0,0" />
+                        <TextBlock Style="{StaticResource MetricLabel}" HorizontalAlignment="Center"
+                                   ctrl:Tracking.Text="MEMORY" />
+                    </StackPanel>
+
+                    <StackPanel Grid.Column="2" VerticalAlignment="Center">
+                        <UniformGrid Columns="2">
+                            <StackPanel Margin="0,0,16,14">
+                                <TextBlock Style="{StaticResource SectionLabel}" ctrl:Tracking.Text="HOST" />
+                                <TextBlock Text="{Binding Info.MachineName}" Style="{StaticResource Cell}"
+                                           FontWeight="SemiBold" Margin="0,5,0,0" />
+                            </StackPanel>
+                            <StackPanel Margin="0,0,0,14">
+                                <TextBlock Style="{StaticResource SectionLabel}" ctrl:Tracking.Text="SIGNED IN AS" />
+                                <TextBlock Text="{Binding Info.UserName}" Style="{StaticResource Cell}"
+                                           Margin="0,5,0,0" />
+                            </StackPanel>
+                            <StackPanel Margin="0,0,16,14">
+                                <TextBlock Style="{StaticResource SectionLabel}" ctrl:Tracking.Text="MEMORY IN USE" />
+                                <TextBlock Style="{StaticResource CellMono}" Margin="0,5,0,0">
+                                    <Run Text="{Binding Info.UsedMemoryDisplay, Mode=OneWay}" /><Run Text=" / " /><Run Text="{Binding Info.TotalMemoryDisplay, Mode=OneWay}" />
+                                </TextBlock>
+                            </StackPanel>
+                            <StackPanel Margin="0,0,0,14">
+                                <TextBlock Style="{StaticResource SectionLabel}" ctrl:Tracking.Text="UPTIME" />
+                                <TextBlock Text="{Binding Info.UptimeDisplay}" Style="{StaticResource CellMono}"
+                                           Margin="0,5,0,0" />
+                            </StackPanel>
+                            <StackPanel Margin="0,0,16,0">
+                                <TextBlock Style="{StaticResource SectionLabel}" ctrl:Tracking.Text="LOGICAL CORES" />
+                                <TextBlock Text="{Binding Info.LogicalProcessors}" Style="{StaticResource CellMono}"
+                                           Margin="0,5,0,0" />
+                            </StackPanel>
+                            <StackPanel>
+                                <TextBlock Style="{StaticResource SectionLabel}" ctrl:Tracking.Text="BOOTED" />
+                                <TextBlock Text="{Binding Info.BootTimeDisplay}" Style="{StaticResource CellMono}"
+                                           Margin="0,5,0,0" />
+                            </StackPanel>
+                        </UniformGrid>
+                    </StackPanel>
+
+                    <StackPanel Grid.Column="3" VerticalAlignment="Top">
+                        <Button Style="{StaticResource BtnPrimary}" Content="REFRESH" Padding="18,9"
+                                Command="{Binding RefreshCommand}" />
+                    </StackPanel>
+                </Grid>
+            </Border>
+
+            <!-- ============ SHORT-TERM HISTORY ============ -->
+            <Border Grid.Row="1" Style="{StaticResource Panel}" Margin="0,14,0,0">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+
+                    <StackPanel Grid.Column="0" Margin="0,0,20,0">
+                        <Grid>
+                            <TextBlock Style="{StaticResource SectionLabel}" ctrl:Tracking.Text="PROCESSOR HISTORY" />
+                            <TextBlock Text="{Binding Info.CpuPercent}" Style="{StaticResource CellMono}"
+                                       HorizontalAlignment="Right" />
+                        </Grid>
+                        <Border Style="{StaticResource InsetPanel}" Padding="10,8" Margin="0,10,0,0" Height="56">
+                            <ItemsControl ItemsSource="{Binding CpuHistory}" VerticalAlignment="Bottom">
+                                <ItemsControl.ItemsPanel>
+                                    <ItemsPanelTemplate>
+                                        <StackPanel Orientation="Horizontal" VerticalAlignment="Bottom" />
+                                    </ItemsPanelTemplate>
+                                </ItemsControl.ItemsPanel>
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <Border Width="4" Margin="1,0" CornerRadius="1"
+                                                VerticalAlignment="Bottom"
+                                                Background="{StaticResource BrushAccent}"
+                                                Height="{Binding Converter={StaticResource BarHeight}}" />
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </Border>
+                        <TextBlock Style="{StaticResource Muted}" FontSize="9" Margin="0,7,0,0"
+                                   Text="Last 60 samples, newest on the right." />
+                    </StackPanel>
+
+                    <StackPanel Grid.Column="1">
+                        <Grid>
+                            <TextBlock Style="{StaticResource SectionLabel}" ctrl:Tracking.Text="MEMORY HISTORY" />
+                            <TextBlock Text="{Binding Info.MemoryPercent}" Style="{StaticResource CellMono}"
+                                       HorizontalAlignment="Right" />
+                        </Grid>
+                        <Border Style="{StaticResource InsetPanel}" Padding="10,8" Margin="0,10,0,0" Height="56">
+                            <ItemsControl ItemsSource="{Binding MemoryHistory}" VerticalAlignment="Bottom">
+                                <ItemsControl.ItemsPanel>
+                                    <ItemsPanelTemplate>
+                                        <StackPanel Orientation="Horizontal" VerticalAlignment="Bottom" />
+                                    </ItemsPanelTemplate>
+                                </ItemsControl.ItemsPanel>
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <Border Width="4" Margin="1,0" CornerRadius="1"
+                                                VerticalAlignment="Bottom"
+                                                Background="{StaticResource BrushLow}"
+                                                Height="{Binding Converter={StaticResource BarHeight}}" />
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </Border>
+                        <TextBlock Style="{StaticResource Muted}" FontSize="9" Margin="0,7,0,0"
+                                   Text="Sampled every two seconds while NEXUS is running." />
+                    </StackPanel>
+                </Grid>
+            </Border>
+
+            <!-- ============ PLATFORM ============ -->
+            <Border Grid.Row="2" Style="{StaticResource Panel}" Margin="0,14,0,0">
+                <StackPanel>
+                    <Grid>
+                        <TextBlock Style="{StaticResource SectionLabel}" ctrl:Tracking.Text="PLATFORM" />
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                            <TextBlock Text="{Binding Info.PowerSourceLabel}" Style="{StaticResource CellDim}"
+                                       VerticalAlignment="Center" Margin="0,0,12,0" />
+                            <TextBlock Text="{Binding Info.BatteryDisplay}" Style="{StaticResource Mono}"
+                                       FontSize="13" FontWeight="SemiBold" VerticalAlignment="Center"
+                                       Foreground="{Binding Info.BatteryBrushKey, Converter={StaticResource ResBrush}}" />
+                        </StackPanel>
+                    </Grid>
+                    <UniformGrid Columns="3" Margin="0,14,0,0">
+                        <StackPanel Margin="0,0,16,0">
+                            <TextBlock Style="{StaticResource SectionLabel}" ctrl:Tracking.Text="OPERATING SYSTEM" />
+                            <TextBlock Text="{Binding Info.OperatingSystem}" Style="{StaticResource Cell}"
+                                       TextWrapping="Wrap" Margin="0,5,0,0" />
+                        </StackPanel>
+                        <StackPanel Margin="0,0,16,0">
+                            <TextBlock Style="{StaticResource SectionLabel}" ctrl:Tracking.Text="ARCHITECTURE" />
+                            <TextBlock Text="{Binding Info.Architecture}" Style="{StaticResource Cell}"
+                                       Margin="0,5,0,0" />
+                        </StackPanel>
+                        <StackPanel>
+                            <TextBlock Style="{StaticResource SectionLabel}" ctrl:Tracking.Text="RUNTIME" />
+                            <TextBlock Text="{Binding Info.Runtime}" Style="{StaticResource Cell}"
+                                       TextWrapping="Wrap" Margin="0,5,0,0" />
+                        </StackPanel>
+                    </UniformGrid>
+                </StackPanel>
+            </Border>
+
+            <!-- ============ STORAGE + ACTIONS ============ -->
+            <Grid Grid.Row="3" Margin="0,14,0,0">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" MinWidth="380" />
+                    <ColumnDefinition Width="330" />
+                </Grid.ColumnDefinitions>
+
+                <Border Grid.Column="0" Style="{StaticResource Panel}" Margin="0,0,14,0" VerticalAlignment="Top">
+                    <StackPanel>
+                        <TextBlock Style="{StaticResource SectionLabel}" ctrl:Tracking.Text="STORAGE VOLUMES" />
+
+                        <ItemsControl ItemsSource="{Binding Volumes}" Margin="0,14,0,0">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Border Style="{StaticResource DataRow}" Padding="12,11">
+                                        <StackPanel>
+                                            <Grid>
+                                                <StackPanel Orientation="Horizontal">
+                                                    <TextBlock Text="{ctrl:Glyph Storage}" FontFamily="{StaticResource FontIcon}"
+                                                               FontSize="13" VerticalAlignment="Center"
+                                                               Foreground="{Binding BrushKey, Converter={StaticResource ResBrush}}" />
+                                                    <TextBlock Text="{Binding Name}" Style="{StaticResource Cell}"
+                                                               FontWeight="SemiBold" Margin="10,0,0,0" />
+                                                    <TextBlock Text="{Binding Label}" Style="{StaticResource CellDim}"
+                                                               Margin="10,0,0,0" VerticalAlignment="Center" />
+                                                    <TextBlock Text="{Binding Format}" Style="{StaticResource CellDim}"
+                                                               Margin="10,0,0,0" VerticalAlignment="Center" />
+                                                </StackPanel>
+
+                                                <TextBlock HorizontalAlignment="Right" Style="{StaticResource CellMono}">
+                                                    <Run Text="{Binding UsedDisplay, Mode=OneWay}" /><Run Text=" / " /><Run Text="{Binding TotalDisplay, Mode=OneWay}" /><Run Text="  " /><Run Text="{Binding UsedPercent, Mode=OneWay}" />
+                                                </TextBlock>
+                                            </Grid>
+
+                                            <Grid Margin="0,10,0,0" Height="6">
+                                                <Border Style="{StaticResource MeterTrack}" Height="6" />
+                                                <Grid>
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="{Binding UsedFraction, Converter={StaticResource FracStar}}" />
+                                                        <ColumnDefinition Width="{Binding UsedFraction, Converter={StaticResource FracStarRem}}" />
+                                                    </Grid.ColumnDefinitions>
+                                                    <Border Grid.Column="0" Height="6" CornerRadius="3"
+                                                            Background="{Binding BrushKey, Converter={StaticResource ResBrush}}" />
+                                                </Grid>
+                                            </Grid>
+
+                                            <TextBlock Style="{StaticResource CellDim}" Margin="0,7,0,0">
+                                                <Run Text="{Binding FreeDisplay, Mode=OneWay}" /><Run Text=" FREE" />
+                                            </TextBlock>
+                                        </StackPanel>
+                                    </Border>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </StackPanel>
+                </Border>
+
+                <StackPanel Grid.Column="1">
+                    <Border Style="{StaticResource Panel}">
+                        <StackPanel>
+                            <TextBlock Style="{StaticResource SectionLabel}" ctrl:Tracking.Text="LOCAL ACTIONS" />
+
+                            <Button Style="{StaticResource Btn}" Content="OPEN TERMINAL" Margin="0,14,0,0"
+                                    Padding="14,10" HorizontalAlignment="Stretch"
+                                    Command="{Binding OpenTerminalCommand}" />
+                            <Button Style="{StaticResource Btn}" Content="OPEN FILE EXPLORER" Margin="0,8,0,0"
+                                    Padding="14,10" HorizontalAlignment="Stretch"
+                                    Command="{Binding OpenExplorerCommand}" />
+                            <Button Style="{StaticResource Btn}" Content="OPEN WINDOWS SETTINGS" Margin="0,8,0,0"
+                                    Padding="14,10" HorizontalAlignment="Stretch"
+                                    Command="{Binding OpenSettingsCommand}" />
+                            <Button Style="{StaticResource Btn}" Content="OPEN TASK MANAGER" Margin="0,8,0,0"
+                                    Padding="14,10" HorizontalAlignment="Stretch"
+                                    Command="{Binding OpenTaskManagerCommand}" />
+
+                            <Border Style="{StaticResource InsetPanel}" Padding="12,10" Margin="0,14,0,0"
+                                    Visibility="{Binding Status, Converter={StaticResource StrToVis}}">
+                                <TextBlock Text="{Binding Status}" Style="{StaticResource Caption}"
+                                           TextWrapping="Wrap" />
+                            </Border>
+                        </StackPanel>
+                    </Border>
+
+                    <Border Style="{StaticResource InsetPanel}" Padding="14,12" Margin="0,14,0,0">
+                        <TextBlock Style="{StaticResource Muted}" FontSize="10" TextWrapping="Wrap"
+                                   Text="Processor, memory, storage and uptime figures on this page are read live from this machine through the Windows APIs. Nothing here is estimated." />
+                    </Border>
+                </StackPanel>
+            </Grid>
+        </Grid>
+    </ScrollViewer>
+</UserControl>

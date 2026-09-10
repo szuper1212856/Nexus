@@ -1,0 +1,256 @@
+<UserControl x:Class="NEXUS.Views.UsersView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:ctrl="clr-namespace:NEXUS.Controls">
+
+    <Grid Margin="28,0,20,24">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="1.1*" MinWidth="400" />
+            <ColumnDefinition Width="*" MinWidth="360" />
+        </Grid.ColumnDefinitions>
+
+        <!-- ================= DIRECTORY ================= -->
+        <Grid Grid.Column="0" Margin="0,0,14,0">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="*" />
+            </Grid.RowDefinitions>
+
+            <Border Grid.Row="0" Style="{StaticResource Panel}" Padding="18,14">
+                <UniformGrid Columns="4">
+                    <StackPanel>
+                        <TextBlock Text="{Binding TotalCount}" Style="{StaticResource MetricValue}" FontSize="20" />
+                        <TextBlock Style="{StaticResource MetricLabel}" ctrl:Tracking.Text="ACCOUNTS" />
+                    </StackPanel>
+                    <StackPanel>
+                        <TextBlock Text="{Binding ActiveCount}" Style="{StaticResource MetricValue}" FontSize="20"
+                                   Foreground="{StaticResource BrushCompleted}" />
+                        <TextBlock Style="{StaticResource MetricLabel}" ctrl:Tracking.Text="ACTIVE" />
+                    </StackPanel>
+                    <StackPanel>
+                        <TextBlock Text="{Binding SessionCount}" Style="{StaticResource MetricValue}" FontSize="20" />
+                        <TextBlock Style="{StaticResource MetricLabel}" ctrl:Tracking.Text="SESSIONS" />
+                    </StackPanel>
+                    <StackPanel>
+                        <TextBlock Text="{Binding SuspendedCount}" Style="{StaticResource MetricValue}" FontSize="20"
+                                   Foreground="{StaticResource BrushCritical}" />
+                        <TextBlock Style="{StaticResource MetricLabel}" ctrl:Tracking.Text="SUSPENDED" />
+                    </StackPanel>
+                </UniformGrid>
+            </Border>
+
+            <Border Grid.Row="1" Style="{StaticResource Panel}" Margin="0,14,0,0" Padding="14,14,8,14">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                    </Grid.RowDefinitions>
+
+                    <Border Grid.Row="0" Style="{StaticResource TableHeaderBar}" Margin="0,0,6,4">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="42" />
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="120" />
+                                <ColumnDefinition Width="95" />
+                                <ColumnDefinition Width="100" />
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Grid.Column="1" Style="{StaticResource ColHead}" ctrl:Tracking.Text="ACCOUNT" />
+                            <TextBlock Grid.Column="2" Style="{StaticResource ColHead}" ctrl:Tracking.Text="ROLE" />
+                            <TextBlock Grid.Column="3" Style="{StaticResource ColHead}" ctrl:Tracking.Text="STATUS" />
+                            <TextBlock Grid.Column="4" Style="{StaticResource ColHead}" ctrl:Tracking.Text="LAST LOGIN" />
+                        </Grid>
+                    </Border>
+
+                    <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+                        <ItemsControl ItemsSource="{Binding Users}" Margin="0,0,6,0">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <RadioButton GroupName="UserRow" Style="{StaticResource RowButton}"
+                                                 Command="{Binding DataContext.SelectCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                 CommandParameter="{Binding}">
+                                        <RadioButton.IsChecked>
+                                            <MultiBinding Converter="{StaticResource SameObj}" Mode="OneWay">
+                                                <Binding />
+                                                <Binding Path="DataContext.Selected"
+                                                         RelativeSource="{RelativeSource AncestorType=UserControl}" />
+                                            </MultiBinding>
+                                        </RadioButton.IsChecked>
+
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="42" />
+                                                <ColumnDefinition Width="*" />
+                                                <ColumnDefinition Width="120" />
+                                                <ColumnDefinition Width="95" />
+                                                <ColumnDefinition Width="100" />
+                                            </Grid.ColumnDefinitions>
+
+                                            <Border Grid.Column="0" Width="30" Height="30" CornerRadius="15"
+                                                    HorizontalAlignment="Left"
+                                                    Background="{StaticResource BrushPanelAlt}" BorderThickness="1"
+                                                    BorderBrush="{Binding RoleBrushKey, Converter={StaticResource ResBrush}}">
+                                                <TextBlock Text="{Binding Initials}" FontSize="10.5"
+                                                           FontWeight="SemiBold" HorizontalAlignment="Center"
+                                                           VerticalAlignment="Center"
+                                                           Foreground="{Binding RoleBrushKey, Converter={StaticResource ResBrush}}" />
+                                            </Border>
+
+                                            <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="0,0,10,0">
+                                                <TextBlock Text="{Binding DisplayName}" Style="{StaticResource Cell}"
+                                                           FontWeight="SemiBold" />
+                                                <TextBlock Style="{StaticResource CellDim}">
+                                                    <Run Text="{Binding Username, Mode=OneWay}" /><Run Text=" &#183; " /><Run Text="{Binding PermissionCount, Mode=OneWay}" /><Run Text=" PERMISSIONS" />
+                                                </TextBlock>
+                                            </StackPanel>
+
+                                            <TextBlock Grid.Column="2" Text="{Binding RoleLabel}" FontSize="9.5"
+                                                       FontWeight="SemiBold" VerticalAlignment="Center"
+                                                       Foreground="{Binding RoleBrushKey, Converter={StaticResource ResBrush}}" />
+
+                                            <StackPanel Grid.Column="3" Orientation="Horizontal" VerticalAlignment="Center">
+                                                <Ellipse Width="7" Height="7" VerticalAlignment="Center"
+                                                         Fill="{Binding StatusBrushKey, Converter={StaticResource ResBrush}}" />
+                                                <TextBlock Text="{Binding StatusLabel}" FontSize="9.5" Margin="7,0,0,0"
+                                                           FontWeight="SemiBold" VerticalAlignment="Center"
+                                                           Foreground="{Binding StatusBrushKey, Converter={StaticResource ResBrush}}" />
+                                            </StackPanel>
+
+                                            <TextBlock Grid.Column="4" Text="{Binding LastLoginDisplay}"
+                                                       Style="{StaticResource CellMono}" FontSize="10" />
+                                        </Grid>
+                                    </RadioButton>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </ScrollViewer>
+                </Grid>
+            </Border>
+        </Grid>
+
+        <!-- ================= ACCOUNT DETAIL ================= -->
+        <ScrollViewer Grid.Column="1" VerticalScrollBarVisibility="Auto" Padding="0,0,8,0"
+                      Visibility="{Binding HasSelection, Converter={StaticResource BoolToVis}}">
+            <StackPanel>
+
+                <Border Style="{StaticResource Panel}">
+                    <StackPanel>
+                        <StackPanel Orientation="Horizontal">
+                            <Border Width="48" Height="48" CornerRadius="24"
+                                    Background="{StaticResource BrushPanelAlt}" BorderThickness="1.5"
+                                    BorderBrush="{Binding Selected.RoleBrushKey, Converter={StaticResource ResBrush}}">
+                                <TextBlock Text="{Binding Selected.Initials}" FontSize="15" FontWeight="SemiBold"
+                                           HorizontalAlignment="Center" VerticalAlignment="Center"
+                                           Foreground="{Binding Selected.RoleBrushKey, Converter={StaticResource ResBrush}}" />
+                            </Border>
+
+                            <StackPanel Margin="16,0,0,0" VerticalAlignment="Center">
+                                <TextBlock Text="{Binding Selected.DisplayName}" FontSize="16" FontWeight="SemiBold" />
+                                <StackPanel Orientation="Horizontal" Margin="0,6,0,0">
+                                    <Ellipse Width="7" Height="7" VerticalAlignment="Center"
+                                             Fill="{Binding Selected.StatusBrushKey, Converter={StaticResource ResBrush}}" />
+                                    <TextBlock Text="{Binding Selected.StatusLabel}" FontSize="10" Margin="7,0,0,0"
+                                               FontWeight="SemiBold" VerticalAlignment="Center"
+                                               Foreground="{Binding Selected.StatusBrushKey, Converter={StaticResource ResBrush}}" />
+                                    <TextBlock Text="{Binding Selected.Username}" Style="{StaticResource CellMono}"
+                                               Margin="12,0,0,0" />
+                                </StackPanel>
+                            </StackPanel>
+                        </StackPanel>
+
+                        <Border Style="{StaticResource Divider}" Margin="0,16,0,12" />
+
+                        <UniformGrid Columns="2">
+                            <StackPanel Margin="0,0,10,12">
+                                <TextBlock Style="{StaticResource SectionLabel}" ctrl:Tracking.Text="ROLE" />
+                                <TextBlock Text="{Binding Selected.RoleLabel}" Style="{StaticResource Cell}"
+                                           FontWeight="SemiBold" Margin="0,4,0,0"
+                                           Foreground="{Binding Selected.RoleBrushKey, Converter={StaticResource ResBrush}}" />
+                            </StackPanel>
+                            <StackPanel Margin="0,0,0,12">
+                                <TextBlock Style="{StaticResource SectionLabel}" ctrl:Tracking.Text="ACCESS LEVEL" />
+                                <TextBlock Text="{Binding Selected.AccessLevel}" Style="{StaticResource Cell}"
+                                           Margin="0,4,0,0" />
+                            </StackPanel>
+                            <StackPanel Margin="0,0,10,0">
+                                <TextBlock Style="{StaticResource SectionLabel}" ctrl:Tracking.Text="LAST LOGIN" />
+                                <TextBlock Text="{Binding Selected.LastLoginDisplay}" Style="{StaticResource CellMono}"
+                                           Margin="0,4,0,0" />
+                            </StackPanel>
+                            <StackPanel>
+                                <TextBlock Style="{StaticResource SectionLabel}" ctrl:Tracking.Text="ACTIVE SESSIONS" />
+                                <TextBlock Text="{Binding Selected.SessionCount}" Style="{StaticResource CellMono}"
+                                           Margin="0,4,0,0" />
+                            </StackPanel>
+                        </UniformGrid>
+
+                        <Border Style="{StaticResource Divider}" Margin="0,14,0,12" />
+
+                        <TextBlock Style="{StaticResource SectionLabel}" ctrl:Tracking.Text="ASSIGN ROLE" />
+                        <WrapPanel Margin="0,10,0,0">
+                            <ToggleButton Style="{StaticResource Chip}" Content="ADMINISTRATOR"
+                                          Command="{Binding SetRoleCommand}" CommandParameter="Administrator"
+                                          IsChecked="{Binding SelectedRoleKey, Converter={StaticResource EqBool}, ConverterParameter=Administrator, Mode=OneWay}" />
+                            <ToggleButton Style="{StaticResource Chip}" Content="OPERATOR"
+                                          Command="{Binding SetRoleCommand}" CommandParameter="Operator"
+                                          IsChecked="{Binding SelectedRoleKey, Converter={StaticResource EqBool}, ConverterParameter=Operator, Mode=OneWay}" />
+                            <ToggleButton Style="{StaticResource Chip}" Content="USER"
+                                          Command="{Binding SetRoleCommand}" CommandParameter="User"
+                                          IsChecked="{Binding SelectedRoleKey, Converter={StaticResource EqBool}, ConverterParameter=User, Mode=OneWay}" />
+                            <ToggleButton Style="{StaticResource Chip}" Content="GUEST"
+                                          Command="{Binding SetRoleCommand}" CommandParameter="Guest"
+                                          IsChecked="{Binding SelectedRoleKey, Converter={StaticResource EqBool}, ConverterParameter=Guest, Mode=OneWay}" />
+                        </WrapPanel>
+
+                        <Border Style="{StaticResource Divider}" Margin="0,14,0,12" />
+
+                        <WrapPanel>
+                            <Button Style="{StaticResource BtnSmall}" Content="OPEN ACCESS MATRIX" Margin="0,0,8,8"
+                                    Command="{Binding OpenAccessCommand}" />
+                            <Button Style="{StaticResource BtnSmallGhost}" Content="REVOKE SESSIONS" Margin="0,0,8,8"
+                                    Command="{Binding RevokeCommand}" />
+                            <Button Style="{StaticResource BtnSmallGhost}" Content="SUSPEND" Margin="0,0,8,8"
+                                    Command="{Binding SuspendCommand}" />
+                            <Button Style="{StaticResource BtnSmallGhost}" Content="REINSTATE" Margin="0,0,8,8"
+                                    Command="{Binding ReinstateCommand}" />
+                            <Button Style="{StaticResource BtnDanger}" Content="DELETE" Padding="12,6" FontSize="9.5"
+                                    Margin="0,0,0,8" Command="{Binding RemoveCommand}" />
+                        </WrapPanel>
+                    </StackPanel>
+                </Border>
+
+                <!-- Permissions -->
+                <Border Style="{StaticResource Panel}" Margin="0,14,0,0">
+                    <StackPanel>
+                        <Grid>
+                            <TextBlock Style="{StaticResource SectionLabel}" ctrl:Tracking.Text="PERMISSIONS" />
+                            <TextBlock Style="{StaticResource Caption}" HorizontalAlignment="Right"
+                                       FontWeight="SemiBold">
+                                <Run Text="{Binding Selected.PermissionCount, Mode=OneWay}" /><Run Text=" GRANTED" />
+                            </TextBlock>
+                        </Grid>
+
+                        <ItemsControl ItemsSource="{Binding SelectedPermissions}" Margin="0,12,0,0">
+                            <ItemsControl.ItemsPanel>
+                                <ItemsPanelTemplate>
+                                    <UniformGrid Columns="2" />
+                                </ItemsPanelTemplate>
+                            </ItemsControl.ItemsPanel>
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <StackPanel Orientation="Horizontal" Margin="0,0,10,9">
+                                        <TextBlock Text="{Binding Mark}" FontSize="12" FontWeight="SemiBold"
+                                                   VerticalAlignment="Center" Width="16"
+                                                   Foreground="{Binding IsAllowed, Converter={StaticResource BoolBrush}}" />
+                                        <TextBlock Text="{Binding Permission, Converter={StaticResource PermLabel}}"
+                                                   Style="{StaticResource Cell}" FontSize="11" />
+                                    </StackPanel>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </StackPanel>
+                </Border>
+            </StackPanel>
+        </ScrollViewer>
+    </Grid>
+</UserControl>

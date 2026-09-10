@@ -1,0 +1,41 @@
+<Window x:Class="NEXUS.Views.ConfirmWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:ctrl="clr-namespace:NEXUS.Controls"
+        Title="NEXUS"
+        Width="470" SizeToContent="Height"
+        WindowStyle="None" AllowsTransparency="True" Background="Transparent"
+        WindowStartupLocation="CenterOwner" ShowInTaskbar="False"
+        UseLayoutRounding="True">
+
+    <Border Background="{StaticResource BrushWindow}" BorderBrush="{StaticResource BrushBorder}"
+            BorderThickness="1" CornerRadius="12" Margin="16">
+        <Border.Effect>
+            <DropShadowEffect BlurRadius="32" ShadowDepth="8" Opacity="0.65" Color="#000000" />
+        </Border.Effect>
+
+        <StackPanel Margin="24,22,24,20">
+            <StackPanel Orientation="Horizontal">
+                <Border x:Name="IconHost" Width="32" Height="32" CornerRadius="8"
+                        Background="{StaticResource BrushPanelAlt}"
+                        BorderBrush="{StaticResource BrushCritical}" BorderThickness="1">
+                    <TextBlock x:Name="IconGlyph" Text="{ctrl:Glyph Warning}" FontFamily="{StaticResource FontIcon}"
+                               FontSize="13" HorizontalAlignment="Center" VerticalAlignment="Center"
+                               Foreground="{StaticResource BrushCritical}" />
+                </Border>
+                <TextBlock x:Name="HeadingText" FontSize="14" FontWeight="SemiBold" Margin="14,0,0,0"
+                           VerticalAlignment="Center" />
+            </StackPanel>
+
+            <TextBlock x:Name="MessageText" Style="{StaticResource Caption}" TextWrapping="Wrap"
+                       Margin="0,16,0,0" LineHeight="19" />
+
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,22,0,0">
+                <Button Style="{StaticResource BtnGhost}" Content="CANCEL" Padding="20,9"
+                        IsCancel="True" Click="Cancel_Click" />
+                <Button x:Name="ConfirmButton" Style="{StaticResource BtnDanger}" Padding="24,9"
+                        Margin="10,0,0,0" IsDefault="True" Click="Confirm_Click" />
+            </StackPanel>
+        </StackPanel>
+    </Border>
+</Window>

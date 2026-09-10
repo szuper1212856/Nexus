@@ -1,0 +1,225 @@
+<UserControl x:Class="NEXUS.Views.NetworkView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:ctrl="clr-namespace:NEXUS.Controls">
+
+    <UserControl.Resources>
+        <!-- Recursive topology node. Children indent under their parent with a connector rail. -->
+        <HierarchicalDataTemplate x:Key="NodeTemplate" ItemsSource="{Binding Children}">
+            <Border Style="{StaticResource DataRow}" Padding="10,7" Margin="0,0,0,3">
+                <StackPanel Orientation="Horizontal">
+                    <Border Width="26" Height="26" CornerRadius="6"
+                            Background="{StaticResource BrushPanelAlt}"
+                            BorderThickness="1"
+                            BorderBrush="{Binding BrushKey, Converter={StaticResource ResBrush}}">
+                        <TextBlock Text="{Binding Glyph, Converter={StaticResource Glyph}}" FontFamily="{StaticResource FontIcon}" FontSize="12"
+                                   HorizontalAlignment="Center" VerticalAlignment="Center"
+                                   Foreground="{Binding BrushKey, Converter={StaticResource ResBrush}}" />
+                    </Border>
+
+                    <StackPanel Margin="12,0,0,0" VerticalAlignment="Center">
+                        <TextBlock Text="{Binding Name}" Style="{StaticResource Cell}" FontWeight="SemiBold" />
+                        <TextBlock Text="{Binding Detail}" Style="{StaticResource CellDim}" Margin="0,2,0,0" />
+                    </StackPanel>
+
+                    <Button Style="{StaticResource BtnSmallGhost}" Content="OPEN" Margin="14,0,0,0"
+                            VerticalAlignment="Center"
+                            Command="{Binding DataContext.OpenDeviceCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                            CommandParameter="{Binding}"
+                            Visibility="{Binding Device, Converter={StaticResource NullToVis}}" />
+                </StackPanel>
+            </Border>
+        </HierarchicalDataTemplate>
+    </UserControl.Resources>
+
+    <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="28,0,20,24">
+        <Grid Margin="0,0,8,0">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="*" />
+            </Grid.RowDefinitions>
+
+            <!-- ============ LINK STATUS ============ -->
+            <Border Grid.Row="0" Style="{StaticResource Panel}">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+
+                    <UniformGrid Grid.Column="0" Columns="5">
+                        <StackPanel Margin="0,0,12,0">
+                            <StackPanel Orientation="Horizontal">
+                                <Ellipse Width="8" Height="8" VerticalAlignment="Center"
+                                         Fill="{Binding StatusBrushKey, Converter={StaticResource ResBrush}}" />
+                                <TextBlock Text="{Binding StatusLabel}" Style="{StaticResource Mono}"
+                                           FontSize="16" FontWeight="SemiBold" Margin="9,0,0,0"
+                                           Foreground="{Binding StatusBrushKey, Converter={StaticResource ResBrush}}" />
+                            </StackPanel>
+                            <TextBlock Style="{StaticResource MetricLabel}" ctrl:Tracking.Text="LINK STATE" />
+                        </StackPanel>
+
+                        <StackPanel Margin="0,0,12,0">
+                            <TextBlock Text="{Binding PrimaryAddress}" Style="{StaticResource Mono}"
+                                       FontSize="16" FontWeight="SemiBold" />
+                            <TextBlock Style="{StaticResource MetricLabel}" ctrl:Tracking.Text="THIS HOST" />
+                        </StackPanel>
+
+                        <StackPanel Margin="0,0,12,0">
+                            <TextBlock Text="{Binding Gateway}" Style="{StaticResource Mono}"
+                                       FontSize="16" FontWeight="SemiBold" />
+                            <TextBlock Style="{StaticResource MetricLabel}" ctrl:Tracking.Text="GATEWAY" />
+                        </StackPanel>
+
+                        <StackPanel Margin="0,0,12,0">
+                            <TextBlock Style="{StaticResource Mono}" FontSize="16" FontWeight="SemiBold">
+                                <Run Text="{Binding OnlineCount, Mode=OneWay}" /><Run Text="/" /><Run Text="{Binding NodeCount, Mode=OneWay}" />
+                            </TextBlock>
+                            <TextBlock Style="{StaticResource MetricLabel}" ctrl:Tracking.Text="NODES ONLINE" />
+                        </StackPanel>
+
+                        <StackPanel>
+                            <TextBlock Text="{Binding ThroughputDisplay}" Style="{StaticResource Mono}"
+                                       FontSize="13" FontWeight="SemiBold" />
+                            <TextBlock Style="{StaticResource MetricLabel}" ctrl:Tracking.Text="INTERFACE TOTALS" />
+                        </StackPanel>
+                    </UniformGrid>
+
+                    <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                        <Button Style="{StaticResource BtnSmall}" Content="REFRESH" Command="{Binding RefreshCommand}" />
+                        <Button Style="{StaticResource BtnSmall}" Content="DISCOVER NEIGHBOURS" Margin="8,0,0,0"
+                                Command="{Binding DiscoverCommand}"
+                                ToolTip="Reads this machine's own ARP cache. No address ranges are probed." />
+                    </StackPanel>
+                </Grid>
+            </Border>
+
+            <Grid Grid.Row="1" Margin="0,14,0,0">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="1.25*" MinWidth="380" />
+                    <ColumnDefinition Width="*" MinWidth="330" />
+                </Grid.ColumnDefinitions>
+
+                <!-- ============ TOPOLOGY ============ -->
+                <Border Grid.Column="0" Style="{StaticResource Panel}" Margin="0,0,14,0" VerticalAlignment="Top">
+                    <StackPanel>
+                        <Grid>
+                            <TextBlock Style="{StaticResource SectionLabel}" ctrl:Tracking.Text="NETWORK TOPOLOGY" />
+                            <TextBlock Style="{StaticResource Muted}" FontSize="9.5" HorizontalAlignment="Right"
+                                       Text="ROOTED AT NEXUS CORE" />
+                        </Grid>
+
+                        <TreeView ItemsSource="{Binding Topology}" Margin="0,14,0,0"
+                                  Background="Transparent" BorderThickness="0"
+                                  ItemTemplate="{StaticResource NodeTemplate}"
+                                  ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+                            <TreeView.ItemContainerStyle>
+                                <Style TargetType="TreeViewItem">
+                                    <Setter Property="IsExpanded" Value="True" />
+                                    <Setter Property="Focusable" Value="False" />
+                                    <Setter Property="Background" Value="Transparent" />
+                                    <Setter Property="BorderThickness" Value="0" />
+                                    <Setter Property="Padding" Value="0" />
+                                    <Setter Property="Template">
+                                        <Setter.Value>
+                                            <ControlTemplate TargetType="TreeViewItem">
+                                                <StackPanel>
+                                                    <ContentPresenter ContentSource="Header" />
+                                                    <Border Margin="16,0,0,0" BorderThickness="1,0,0,0"
+                                                            BorderBrush="{StaticResource BrushBorderSoft}"
+                                                            Padding="12,0,0,0">
+                                                        <ItemsPresenter />
+                                                    </Border>
+                                                </StackPanel>
+                                            </ControlTemplate>
+                                        </Setter.Value>
+                                    </Setter>
+                                </Style>
+                            </TreeView.ItemContainerStyle>
+                        </TreeView>
+                    </StackPanel>
+                </Border>
+
+                <!-- ============ INTERFACES + PING ============ -->
+                <StackPanel Grid.Column="1">
+                    <Border Style="{StaticResource Panel}">
+                        <StackPanel>
+                            <TextBlock Style="{StaticResource SectionLabel}" ctrl:Tracking.Text="LOCAL INTERFACES" />
+
+                            <Border Style="{StaticResource TableHeaderBar}" Margin="0,12,0,4">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="110" />
+                                        <ColumnDefinition Width="80" />
+                                        <ColumnDefinition Width="60" />
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Grid.Column="0" Style="{StaticResource ColHead}" ctrl:Tracking.Text="ADAPTER" />
+                                    <TextBlock Grid.Column="1" Style="{StaticResource ColHead}" ctrl:Tracking.Text="ADDRESS" />
+                                    <TextBlock Grid.Column="2" Style="{StaticResource ColHead}" ctrl:Tracking.Text="LINK" />
+                                    <TextBlock Grid.Column="3" Style="{StaticResource ColHead}" ctrl:Tracking.Text="STATE" />
+                                </Grid>
+                            </Border>
+
+                            <ItemsControl ItemsSource="{Binding Interfaces}">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <Border Style="{StaticResource DataRow}" Padding="12,7">
+                                            <Grid>
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="*" />
+                                                    <ColumnDefinition Width="110" />
+                                                    <ColumnDefinition Width="80" />
+                                                    <ColumnDefinition Width="60" />
+                                                </Grid.ColumnDefinitions>
+
+                                                <StackPanel Grid.Column="0" Margin="0,0,10,0">
+                                                    <TextBlock Text="{Binding Name}" Style="{StaticResource Cell}" />
+                                                    <TextBlock Text="{Binding MacAddress}" Style="{StaticResource CellDim}"
+                                                               FontFamily="{StaticResource FontMono}" FontSize="9" />
+                                                </StackPanel>
+
+                                                <TextBlock Grid.Column="1" Text="{Binding IpAddress}"
+                                                           Style="{StaticResource CellMono}" />
+                                                <TextBlock Grid.Column="2" Text="{Binding LinkLabel}"
+                                                           Style="{StaticResource CellDim}" />
+                                                <TextBlock Grid.Column="3" Text="{Binding StatusLabel}" FontSize="9.5"
+                                                           FontWeight="SemiBold" VerticalAlignment="Center"
+                                                           Foreground="{Binding StatusBrushKey, Converter={StaticResource ResBrush}}" />
+                                            </Grid>
+                                        </Border>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </StackPanel>
+                    </Border>
+
+                    <Border Style="{StaticResource Panel}" Margin="0,14,0,0">
+                        <StackPanel>
+                            <TextBlock Style="{StaticResource SectionLabel}" ctrl:Tracking.Text="REACHABILITY CHECK" />
+
+                            <Grid Margin="0,12,0,0">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <TextBox Grid.Column="0" Style="{StaticResource Input}" Margin="0,0,10,0"
+                                         Text="{Binding PingHost, UpdateSourceTrigger=PropertyChanged}"
+                                         ToolTip="Host name or IP address" />
+                                <Button Grid.Column="1" Style="{StaticResource Btn}" Content="PING" Padding="18,8"
+                                        Command="{Binding PingCommand}" />
+                            </Grid>
+
+                            <Border Style="{StaticResource InsetPanel}" Padding="12,10" Margin="0,12,0,0"
+                                    Visibility="{Binding PingResult, Converter={StaticResource StrToVis}}">
+                                <TextBlock Text="{Binding PingResult}" Style="{StaticResource ConsoleText}"
+                                           FontSize="11" TextWrapping="Wrap"
+                                           Foreground="{StaticResource BrushCompleted}" />
+                            </Border>
+                        </StackPanel>
+                    </Border>
+                </StackPanel>
+            </Grid>
+        </Grid>
+    </ScrollViewer>
+</UserControl>

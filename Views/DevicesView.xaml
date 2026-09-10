@@ -1,0 +1,410 @@
+<UserControl x:Class="NEXUS.Views.DevicesView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:ctrl="clr-namespace:NEXUS.Controls">
+
+    <Grid Margin="28,0,20,24">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="1.35*" MinWidth="440" />
+            <ColumnDefinition Width="*" MinWidth="360" />
+        </Grid.ColumnDefinitions>
+
+        <!-- ================= INVENTORY ================= -->
+        <Grid Grid.Column="0" Margin="0,0,14,0">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="*" />
+            </Grid.RowDefinitions>
+
+            <Border Grid.Row="0" Style="{StaticResource Panel}" Padding="16">
+                <StackPanel>
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+
+                        <Grid Grid.Column="0" Margin="0,0,12,0">
+                            <TextBox Style="{StaticResource Input}" Padding="34,8,10,8"
+                                     Text="{Binding Search, UpdateSourceTrigger=PropertyChanged, Delay=120}" />
+                            <TextBlock Text="{ctrl:Glyph Search}" FontFamily="{StaticResource FontIcon}" FontSize="12"
+                                       Margin="12,0,0,0" VerticalAlignment="Center" IsHitTestVisible="False"
+                                       Foreground="{StaticResource BrushTextMuted}" />
+                            <TextBlock Text="Filter by name, address, type or MAC" IsHitTestVisible="False"
+                                       Margin="34,0,0,0" VerticalAlignment="Center" FontSize="12"
+                                       Foreground="{StaticResource BrushTextMuted}"
+                                       Visibility="{Binding Search, Converter={StaticResource StrToVisInv}}" />
+                        </Grid>
+
+                        <StackPanel Grid.Column="1" Orientation="Horizontal">
+                            <Button Style="{StaticResource BtnSmall}" Content="SWEEP" Command="{Binding SweepCommand}"
+                                    ToolTip="Re-evaluate the inventory" />
+                            <Button Style="{StaticResource BtnSmall}" Content="DISCOVER" Margin="8,0,0,0"
+                                    Command="{Binding DiscoverCommand}"
+                                    ToolTip="Read this machine's own ARP cache for neighbours. No probes are sent." />
+                        </StackPanel>
+                    </Grid>
+
+                    <StackPanel Orientation="Horizontal" Margin="0,12,0,0">
+                        <ToggleButton Style="{StaticResource Chip}" Content="ALL"
+                                      IsChecked="{Binding Filter, Converter={StaticResource EqBool}, ConverterParameter=ALL, Mode=OneWay}"
+                                      Command="{Binding SetFilterCommand}" CommandParameter="ALL" />
+                        <ToggleButton Style="{StaticResource Chip}" Content="ONLINE"
+                                      IsChecked="{Binding Filter, Converter={StaticResource EqBool}, ConverterParameter=ONLINE, Mode=OneWay}"
+                                      Command="{Binding SetFilterCommand}" CommandParameter="ONLINE" />
+                        <ToggleButton Style="{StaticResource Chip}" Content="OFFLINE"
+                                      IsChecked="{Binding Filter, Converter={StaticResource EqBool}, ConverterParameter=OFFLINE, Mode=OneWay}"
+                                      Command="{Binding SetFilterCommand}" CommandParameter="OFFLINE" />
+                        <ToggleButton Style="{StaticResource Chip}" Content="CONTROLLABLE"
+                                      IsChecked="{Binding Filter, Converter={StaticResource EqBool}, ConverterParameter=CONTROLLABLE, Mode=OneWay}"
+                                      Command="{Binding SetFilterCommand}" CommandParameter="CONTROLLABLE" />
+                        <ToggleButton Style="{StaticResource Chip}" Content="DISCOVERED"
+                                      IsChecked="{Binding Filter, Converter={StaticResource EqBool}, ConverterParameter=DISCOVERED, Mode=OneWay}"
+                                      Command="{Binding SetFilterCommand}" CommandParameter="DISCOVERED" />
+
+                        <TextBlock Text="{Binding Summary}" Style="{StaticResource Caption}" FontWeight="SemiBold"
+                                   VerticalAlignment="Center" HorizontalAlignment="Right" Margin="16,0,0,0" />
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+
+            <Border Grid.Row="1" Style="{StaticResource Panel}" Margin="0,14,0,0" Padding="14,14,8,14">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                    </Grid.RowDefinitions>
+
+                    <Border Grid.Row="0" Style="{StaticResource TableHeaderBar}" Margin="0,0,6,4">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="30" />
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="110" />
+                                <ColumnDefinition Width="120" />
+                                <ColumnDefinition Width="90" />
+                                <ColumnDefinition Width="100" />
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Grid.Column="1" Style="{StaticResource ColHead}" ctrl:Tracking.Text="DEVICE" />
+                            <TextBlock Grid.Column="2" Style="{StaticResource ColHead}" ctrl:Tracking.Text="TYPE" />
+                            <TextBlock Grid.Column="3" Style="{StaticResource ColHead}" ctrl:Tracking.Text="ADDRESS" />
+                            <TextBlock Grid.Column="4" Style="{StaticResource ColHead}" ctrl:Tracking.Text="LINK" />
+                            <TextBlock Grid.Column="5" Style="{StaticResource ColHead}" ctrl:Tracking.Text="STATUS" />
+                        </Grid>
+                    </Border>
+
+                    <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+                        <ItemsControl ItemsSource="{Binding Devices}" Margin="0,0,6,0">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <RadioButton GroupName="DeviceRow" Style="{StaticResource RowButton}"
+                                                 Command="{Binding DataContext.SelectCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                 CommandParameter="{Binding}">
+                                        <RadioButton.IsChecked>
+                                            <MultiBinding Converter="{StaticResource SameObj}" Mode="OneWay">
+                                                <Binding />
+                                                <Binding Path="DataContext.Selected"
+                                                         RelativeSource="{RelativeSource AncestorType=UserControl}" />
+                                            </MultiBinding>
+                                        </RadioButton.IsChecked>
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="30" />
+                                                <ColumnDefinition Width="*" />
+                                                <ColumnDefinition Width="110" />
+                                                <ColumnDefinition Width="120" />
+                                                <ColumnDefinition Width="90" />
+                                                <ColumnDefinition Width="100" />
+                                            </Grid.ColumnDefinitions>
+
+                                            <TextBlock Grid.Column="0" Text="{Binding Glyph, Converter={StaticResource Glyph}}"
+                                                       FontFamily="{StaticResource FontIcon}" FontSize="13"
+                                                       VerticalAlignment="Center"
+                                                       Foreground="{Binding StatusBrushKey, Converter={StaticResource ResBrush}}" />
+
+                                            <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="0,0,10,0">
+                                                <TextBlock Text="{Binding Name}" Style="{StaticResource Cell}"
+                                                           FontWeight="SemiBold" />
+                                                <TextBlock Text="{Binding IntegrationLabel}" FontSize="9"
+                                                           Margin="0,2,0,0"
+                                                           Foreground="{Binding IntegrationBrushKey, Converter={StaticResource ResBrush}}" />
+                                            </StackPanel>
+
+                                            <TextBlock Grid.Column="2" Text="{Binding TypeLabel}" Style="{StaticResource CellDim}" />
+                                            <TextBlock Grid.Column="3" Text="{Binding AddressDisplay}" Style="{StaticResource CellMono}" />
+                                            <TextBlock Grid.Column="4" Text="{Binding LinkLabel}" Style="{StaticResource CellDim}" />
+
+                                            <StackPanel Grid.Column="5" Orientation="Horizontal" VerticalAlignment="Center">
+                                                <Ellipse Width="7" Height="7" VerticalAlignment="Center"
+                                                         Fill="{Binding StatusBrushKey, Converter={StaticResource ResBrush}}" />
+                                                <TextBlock Text="{Binding StatusLabel}" FontSize="9.5" Margin="7,0,0,0"
+                                                           FontWeight="SemiBold" VerticalAlignment="Center"
+                                                           Foreground="{Binding StatusBrushKey, Converter={StaticResource ResBrush}}" />
+                                            </StackPanel>
+                                        </Grid>
+                                    </RadioButton>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </ScrollViewer>
+                </Grid>
+            </Border>
+        </Grid>
+
+        <!-- ================= DEVICE DETAIL ================= -->
+        <ScrollViewer Grid.Column="1" VerticalScrollBarVisibility="Auto" Padding="0,0,8,0"
+                      Visibility="{Binding HasSelection, Converter={StaticResource BoolToVis}}">
+            <StackPanel>
+
+                <Border Style="{StaticResource Panel}">
+                    <StackPanel>
+                        <Grid>
+                            <StackPanel Orientation="Horizontal">
+                                <Border Width="42" Height="42" CornerRadius="9"
+                                        Background="{StaticResource BrushPanelAlt}"
+                                        BorderThickness="1"
+                                        BorderBrush="{Binding Selected.StatusBrushKey, Converter={StaticResource ResBrush}}">
+                                    <TextBlock Text="{Binding Selected.Glyph, Converter={StaticResource Glyph}}" FontFamily="{StaticResource FontIcon}"
+                                               FontSize="18" HorizontalAlignment="Center" VerticalAlignment="Center"
+                                               Foreground="{Binding Selected.StatusBrushKey, Converter={StaticResource ResBrush}}" />
+                                </Border>
+                                <StackPanel Margin="14,0,0,0" VerticalAlignment="Center">
+                                    <TextBlock Text="{Binding Selected.Name}" FontSize="15" FontWeight="SemiBold" />
+                                    <StackPanel Orientation="Horizontal" Margin="0,5,0,0">
+                                        <Ellipse Width="7" Height="7" VerticalAlignment="Center"
+                                                 Fill="{Binding Selected.StatusBrushKey, Converter={StaticResource ResBrush}}" />
+                                        <TextBlock Text="{Binding Selected.StatusLabel}" FontSize="10"
+                                                   FontWeight="SemiBold" Margin="7,0,0,0" VerticalAlignment="Center"
+                                                   Foreground="{Binding Selected.StatusBrushKey, Converter={StaticResource ResBrush}}" />
+                                        <Border Style="{StaticResource Pill}" Margin="10,0,0,0"
+                                                BorderBrush="{Binding Selected.IntegrationBrushKey, Converter={StaticResource ResBrush}}">
+                                            <TextBlock Style="{StaticResource PillText}"
+                                                       Text="{Binding Selected.IntegrationLabel}"
+                                                       Foreground="{Binding Selected.IntegrationBrushKey, Converter={StaticResource ResBrush}}" />
+                                        </Border>
+                                    </StackPanel>
+                                </StackPanel>
+                            </StackPanel>
+                        </Grid>
+
+                        <Border Style="{StaticResource Divider}" Margin="0,16,0,12" />
+
+                        <UniformGrid Columns="2">
+                            <StackPanel Margin="0,0,10,12">
+                                <TextBlock Style="{StaticResource SectionLabel}" ctrl:Tracking.Text="TYPE" />
+                                <TextBlock Text="{Binding Selected.TypeLabel}" Style="{StaticResource Cell}" Margin="0,4,0,0" />
+                            </StackPanel>
+                            <StackPanel Margin="0,0,0,12">
+                                <TextBlock Style="{StaticResource SectionLabel}" ctrl:Tracking.Text="CONNECTION" />
+                                <TextBlock Text="{Binding Selected.LinkLabel}" Style="{StaticResource Cell}" Margin="0,4,0,0" />
+                            </StackPanel>
+                            <StackPanel Margin="0,0,10,12">
+                                <TextBlock Style="{StaticResource SectionLabel}" ctrl:Tracking.Text="IP ADDRESS" />
+                                <TextBlock Text="{Binding Selected.AddressDisplay}" Style="{StaticResource CellMono}"
+                                           Margin="0,4,0,0" />
+                            </StackPanel>
+                            <StackPanel Margin="0,0,0,12">
+                                <TextBlock Style="{StaticResource SectionLabel}" ctrl:Tracking.Text="LAST SEEN" />
+                                <TextBlock Text="{Binding Selected.LastSeenDisplay}" Style="{StaticResource CellMono}"
+                                           Margin="0,4,0,0" />
+                            </StackPanel>
+                            <StackPanel Margin="0,0,10,0">
+                                <TextBlock Style="{StaticResource SectionLabel}" ctrl:Tracking.Text="MAC" />
+                                <TextBlock Text="{Binding Selected.MacAddress, FallbackValue=&#8212;}"
+                                           Style="{StaticResource CellMono}" Margin="0,4,0,0" />
+                            </StackPanel>
+                            <StackPanel>
+                                <TextBlock Style="{StaticResource SectionLabel}" ctrl:Tracking.Text="VENDOR" />
+                                <TextBlock Text="{Binding Selected.Vendor}" Style="{StaticResource Cell}" Margin="0,4,0,0" />
+                            </StackPanel>
+                        </UniformGrid>
+                    </StackPanel>
+                </Border>
+
+                <!-- Honesty notice about what these controls actually do -->
+                <Border Style="{StaticResource InsetPanel}" Margin="0,14,0,0" Padding="14,12"
+                        Visibility="{Binding SelectedNotice, Converter={StaticResource StrToVis}}">
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="{ctrl:Glyph Info}" FontFamily="{StaticResource FontIcon}" FontSize="12"
+                                   VerticalAlignment="Top" Margin="0,1,0,0"
+                                   Foreground="{Binding Selected.IntegrationBrushKey, Converter={StaticResource ResBrush}}" />
+                        <TextBlock Text="{Binding SelectedNotice}" Style="{StaticResource Muted}" FontSize="10.5"
+                                   TextWrapping="Wrap" Margin="10,0,0,0" MaxWidth="330" />
+                    </StackPanel>
+                </Border>
+
+                <!-- Control pad -->
+                <Border Style="{StaticResource Panel}" Margin="0,14,0,0">
+                    <StackPanel>
+                        <Grid>
+                            <TextBlock Style="{StaticResource SectionLabel}" ctrl:Tracking.Text="CONTROLS" />
+                            <TextBlock Style="{StaticResource Muted}" FontSize="9.5" HorizontalAlignment="Right"
+                                       Text="{Binding ControlAvailabilityLabel}" />
+                        </Grid>
+
+                        <ItemsControl ItemsSource="{Binding SelectedControls}" Margin="0,14,0,0">
+                            <ItemsControl.ItemsPanel>
+                                <ItemsPanelTemplate>
+                                    <UniformGrid Columns="3" />
+                                </ItemsPanelTemplate>
+                            </ItemsControl.ItemsPanel>
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Grid>
+                                        <Button Style="{StaticResource ControlPad}"
+                                                IsEnabled="{Binding IsSupported}"
+                                                Command="{Binding DataContext.ExecuteCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                CommandParameter="{Binding}">
+                                            <Button.ToolTip>
+                                                <TextBlock Text="{Binding UnavailableNote}"
+                                                           Visibility="{Binding IsSupported, Converter={StaticResource BoolToVisInv}}" />
+                                            </Button.ToolTip>
+                                            <StackPanel>
+                                                <TextBlock Text="{Binding Glyph, Converter={StaticResource Glyph}}"
+                                                           FontFamily="{StaticResource FontIcon}"
+                                                           FontSize="15" HorizontalAlignment="Center"
+                                                           Foreground="{StaticResource BrushTextDim}" />
+                                                <TextBlock Text="{Binding Label}" FontSize="9" FontWeight="SemiBold"
+                                                           HorizontalAlignment="Center" Margin="0,7,0,0"
+                                                           Foreground="{StaticResource BrushTextDim}" />
+                                            </StackPanel>
+                                        </Button>
+
+                                        <Border CornerRadius="3" Padding="5,1" Margin="0,4,12,0"
+                                                HorizontalAlignment="Right" VerticalAlignment="Top"
+                                                IsHitTestVisible="False"
+                                                Background="{StaticResource BrushPanel}"
+                                                BorderThickness="1"
+                                                BorderBrush="{StaticResource BrushCritical}"
+                                                Visibility="{Binding IsSupported, Converter={StaticResource BoolToVisInv}}">
+                                            <TextBlock Text="N/A" FontSize="7.5" FontWeight="SemiBold"
+                                                       Foreground="{StaticResource BrushCritical}" />
+                                        </Border>
+                                    </Grid>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+
+                        <Border Style="{StaticResource InsetPanel}" Padding="12,10" Margin="0,2,0,0"
+                                Visibility="{Binding ControlsEnabled, Converter={StaticResource BoolToVisInv}}">
+                            <StackPanel>
+                                <TextBlock Style="{StaticResource SectionLabel}"
+                                           Foreground="{StaticResource BrushCritical}"
+                                           ctrl:Tracking.Text="NOT AVAILABLE" />
+                                <TextBlock Style="{StaticResource Muted}" FontSize="10.5" TextWrapping="Wrap"
+                                           Margin="0,6,0,0"
+                                           Text="This integration does not currently expose these controls." />
+                            </StackPanel>
+                        </Border>
+
+                        <Border Style="{StaticResource InsetPanel}" Padding="12,10" Margin="0,4,0,0"
+                                Visibility="{Binding LastResult, Converter={StaticResource StrToVis}}">
+                            <StackPanel>
+                                <TextBlock Style="{StaticResource SectionLabel}" ctrl:Tracking.Text="LAST RESPONSE" />
+                                <TextBlock Text="{Binding LastResult}" Style="{StaticResource Caption}"
+                                           TextWrapping="Wrap" Margin="0,6,0,0" />
+                            </StackPanel>
+                        </Border>
+
+                        <Border Style="{StaticResource Divider}" Margin="0,14,0,12" />
+
+                        <StackPanel Orientation="Horizontal">
+                            <Button Style="{StaticResource BtnSmall}" Content="TOGGLE STATUS"
+                                    Command="{Binding ToggleStatusCommand}" />
+                            <Button Style="{StaticResource BtnSmallGhost}" Content="REMOVE" Margin="8,0,0,0"
+                                    Command="{Binding RemoveCommand}"
+                                    ToolTip="Only discovered hosts can be removed" />
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
+
+                <!-- ================= LINK STATUS ================= -->
+                <Border Style="{StaticResource Panel}" Margin="0,14,0,0"
+                        Visibility="{Binding HasSelection, Converter={StaticResource BoolToVis}}">
+                    <StackPanel>
+                        <TextBlock Style="{StaticResource SectionLabel}" ctrl:Tracking.Text="STATUS" />
+
+                        <Grid Margin="0,12,0,0">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="110" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                            </Grid.RowDefinitions>
+
+                            <TextBlock Grid.Row="0" Grid.Column="0" Style="{StaticResource ColHead}"
+                                       ctrl:Tracking.Text="CONNECTION" Margin="0,0,0,9" />
+                            <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding Selected.ConnectionLabel}"
+                                       Style="{StaticResource Cell}" Margin="0,0,0,9" />
+
+                            <TextBlock Grid.Row="1" Grid.Column="0" Style="{StaticResource ColHead}"
+                                       ctrl:Tracking.Text="RESPONSE" Margin="0,0,0,9" />
+                            <StackPanel Grid.Row="1" Grid.Column="1" Orientation="Horizontal" Margin="0,0,0,9">
+                                <Ellipse Width="7" Height="7" VerticalAlignment="Center"
+                                         Fill="{Binding Selected.ResponseBrushKey, Converter={StaticResource ResBrush}}" />
+                                <TextBlock Text="{Binding Selected.LastResponseDisplay}"
+                                           Style="{StaticResource CellMono}" Margin="8,0,0,0" />
+                            </StackPanel>
+
+                            <TextBlock Grid.Row="2" Grid.Column="0" Style="{StaticResource ColHead}"
+                                       ctrl:Tracking.Text="LAST COMMAND" Margin="0,0,0,9" />
+                            <TextBlock Grid.Row="2" Grid.Column="1" Text="{Binding Selected.LastCommandDisplay}"
+                                       Style="{StaticResource CellMono}" Margin="0,0,0,9" />
+
+                            <TextBlock Grid.Row="3" Grid.Column="0" Style="{StaticResource ColHead}"
+                                       ctrl:Tracking.Text="LAST RESPONSE" VerticalAlignment="Top" />
+                            <TextBlock Grid.Row="3" Grid.Column="1" Style="{StaticResource Cell}"
+                                       TextWrapping="Wrap" MaxWidth="260" HorizontalAlignment="Left"
+                                       Text="{Binding Selected.LastResponse, FallbackValue=No command sent yet.}"
+                                       Foreground="{Binding Selected.ResponseBrushKey, Converter={StaticResource ResBrush}}" />
+                        </Grid>
+                    </StackPanel>
+                </Border>
+
+                <!-- ================= DEVICE EVENTS ================= -->
+                <Border Style="{StaticResource Panel}" Margin="0,14,0,0"
+                        Visibility="{Binding SelectedEvents.Count, Converter={StaticResource CountToVis}}">
+                    <StackPanel>
+                        <Grid>
+                            <TextBlock Style="{StaticResource SectionLabel}" ctrl:Tracking.Text="DEVICE EVENTS" />
+                            <Button HorizontalAlignment="Right" Style="{StaticResource BtnSmallGhost}"
+                                    Content="AUDIT LOG"
+                                    Command="{Binding DataContext.NavigateCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                    CommandParameter="LOGS" />
+                        </Grid>
+
+                        <ItemsControl ItemsSource="{Binding SelectedEvents}" Margin="0,12,0,0">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Grid Margin="0,0,0,10">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="62" />
+                                            <ColumnDefinition Width="Auto" />
+                                            <ColumnDefinition Width="*" />
+                                        </Grid.ColumnDefinitions>
+
+                                        <TextBlock Grid.Column="0" Text="{Binding TimeDisplay}"
+                                                   Style="{StaticResource CellMono}" VerticalAlignment="Top" />
+                                        <Border Grid.Column="1" Width="2" Margin="6,3,10,0" CornerRadius="1"
+                                                Background="{Binding CategoryBrushKey, Converter={StaticResource ResBrush}}" />
+                                        <StackPanel Grid.Column="2">
+                                            <TextBlock Text="{Binding Message}" FontSize="11"
+                                                       TextWrapping="Wrap" />
+                                            <TextBlock Text="{Binding Detail}" Style="{StaticResource CellDim}"
+                                                       TextWrapping="Wrap" Margin="0,2,0,0"
+                                                       Visibility="{Binding Detail, Converter={StaticResource StrToVis}}" />
+                                        </StackPanel>
+                                    </Grid>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </StackPanel>
+                </Border>
+            </StackPanel>
+        </ScrollViewer>
+    </Grid>
+</UserControl>

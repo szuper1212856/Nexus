@@ -1,0 +1,472 @@
+<UserControl x:Class="NEXUS.Views.DirectoryView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:ctrl="clr-namespace:NEXUS.Controls">
+
+    <Grid Margin="28,0,20,24">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="1.15*" MinWidth="420" />
+            <ColumnDefinition Width="*" MinWidth="380" />
+        </Grid.ColumnDefinitions>
+
+        <!-- ================= DIRECTORY ================= -->
+        <Grid Grid.Column="0" Margin="0,0,14,0">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="*" />
+            </Grid.RowDefinitions>
+
+            <Border Grid.Row="0" Style="{StaticResource Panel}" Padding="18,14">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+
+                    <StackPanel Grid.Column="0" Margin="0,0,24,0">
+                        <TextBlock Text="{Binding CompanyName}" FontSize="13" FontWeight="SemiBold" />
+                        <StackPanel Orientation="Horizontal" Margin="0,6,0,0">
+                            <Border Style="{StaticResource Pill}" BorderBrush="{StaticResource BrushLow}">
+                                <TextBlock Style="{StaticResource PillText}" Text="SIMULATED ORGANISATION"
+                                           Foreground="{StaticResource BrushLow}" />
+                            </Border>
+                        </StackPanel>
+                    </StackPanel>
+
+                    <UniformGrid Grid.Column="1" Columns="4">
+                        <StackPanel>
+                            <TextBlock Text="{Binding EmployeeCount}" Style="{StaticResource MetricValue}" FontSize="19" />
+                            <TextBlock Style="{StaticResource MetricLabel}" ctrl:Tracking.Text="EMPLOYEES" />
+                        </StackPanel>
+                        <StackPanel>
+                            <TextBlock Text="{Binding OnlineCount}" Style="{StaticResource MetricValue}" FontSize="19"
+                                       Foreground="{StaticResource BrushCompleted}" />
+                            <TextBlock Style="{StaticResource MetricLabel}" ctrl:Tracking.Text="ONLINE" />
+                        </StackPanel>
+                        <StackPanel>
+                            <TextBlock Text="{Binding LockedCount}" Style="{StaticResource MetricValue}" FontSize="19"
+                                       Foreground="{StaticResource BrushHigh}" />
+                            <TextBlock Style="{StaticResource MetricLabel}" ctrl:Tracking.Text="LOCKED" />
+                        </StackPanel>
+                        <StackPanel>
+                            <TextBlock Text="{Binding DisabledCount}" Style="{StaticResource MetricValue}" FontSize="19"
+                                       Foreground="{StaticResource BrushCritical}" />
+                            <TextBlock Style="{StaticResource MetricLabel}" ctrl:Tracking.Text="DISABLED" />
+                        </StackPanel>
+                    </UniformGrid>
+                </Grid>
+            </Border>
+
+            <Border Grid.Row="1" Style="{StaticResource Panel}" Margin="0,14,0,0" Padding="16">
+                <StackPanel>
+                    <Grid>
+                        <TextBox Style="{StaticResource Input}" Padding="34,8,10,8"
+                                 Text="{Binding Search, UpdateSourceTrigger=PropertyChanged, Delay=140}" />
+                        <TextBlock Text="{ctrl:Glyph Search}" FontFamily="{StaticResource FontIcon}" FontSize="12"
+                                   Margin="12,0,0,0" VerticalAlignment="Center" IsHitTestVisible="False"
+                                   Foreground="{StaticResource BrushTextMuted}" />
+                        <TextBlock Text="Search name, username, email, title or device" IsHitTestVisible="False"
+                                   Margin="34,0,0,0" VerticalAlignment="Center" FontSize="12"
+                                   Foreground="{StaticResource BrushTextMuted}"
+                                   Visibility="{Binding Search, Converter={StaticResource StrToVisInv}}" />
+                    </Grid>
+
+                    <ItemsControl ItemsSource="{Binding DepartmentFilters}" Margin="0,12,0,0">
+                        <ItemsControl.ItemsPanel>
+                            <ItemsPanelTemplate><WrapPanel /></ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <ToggleButton Style="{StaticResource Chip}" Content="{Binding}"
+                                              Command="{Binding DataContext.SetDepartmentFilterCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                              CommandParameter="{Binding}">
+                                    <ToggleButton.IsChecked>
+                                        <MultiBinding Converter="{StaticResource MultiEq}" Mode="OneWay">
+                                            <Binding />
+                                            <Binding Path="DataContext.DepartmentFilter"
+                                                     RelativeSource="{RelativeSource AncestorType=UserControl}" />
+                                        </MultiBinding>
+                                    </ToggleButton.IsChecked>
+                                </ToggleButton>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+
+                    <ItemsControl ItemsSource="{Binding StatusFilters}" Margin="0,4,0,0">
+                        <ItemsControl.ItemsPanel>
+                            <ItemsPanelTemplate><WrapPanel /></ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <ToggleButton Style="{StaticResource Chip}" Content="{Binding}"
+                                              Command="{Binding DataContext.SetStatusFilterCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                              CommandParameter="{Binding}">
+                                    <ToggleButton.IsChecked>
+                                        <MultiBinding Converter="{StaticResource MultiEq}" Mode="OneWay">
+                                            <Binding />
+                                            <Binding Path="DataContext.StatusFilter"
+                                                     RelativeSource="{RelativeSource AncestorType=UserControl}" />
+                                        </MultiBinding>
+                                    </ToggleButton.IsChecked>
+                                </ToggleButton>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </StackPanel>
+            </Border>
+
+            <Border Grid.Row="2" Style="{StaticResource Panel}" Margin="0,14,0,0" Padding="14,14,8,14">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                    </Grid.RowDefinitions>
+
+                    <Border Grid.Row="0" Style="{StaticResource TableHeaderBar}" Margin="0,0,6,4">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="42" />
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="105" />
+                                <ColumnDefinition Width="100" />
+                                <ColumnDefinition Width="92" />
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Grid.Column="1" Style="{StaticResource ColHead}" ctrl:Tracking.Text="EMPLOYEE" />
+                            <TextBlock Grid.Column="2" Style="{StaticResource ColHead}" ctrl:Tracking.Text="DEPARTMENT" />
+                            <TextBlock Grid.Column="3" Style="{StaticResource ColHead}" ctrl:Tracking.Text="DEVICE" />
+                            <TextBlock Grid.Column="4" Style="{StaticResource ColHead}" ctrl:Tracking.Text="ACCOUNT" />
+                        </Grid>
+                    </Border>
+
+                    <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+                        <ItemsControl ItemsSource="{Binding Visible}" Margin="0,0,6,0">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <RadioButton GroupName="EmployeeRow" Style="{StaticResource RowButton}"
+                                                 Command="{Binding DataContext.SelectCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                 CommandParameter="{Binding}">
+                                        <RadioButton.IsChecked>
+                                            <MultiBinding Converter="{StaticResource SameObj}" Mode="OneWay">
+                                                <Binding />
+                                                <Binding Path="DataContext.Selected"
+                                                         RelativeSource="{RelativeSource AncestorType=UserControl}" />
+                                            </MultiBinding>
+                                        </RadioButton.IsChecked>
+
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="42" />
+                                                <ColumnDefinition Width="*" />
+                                                <ColumnDefinition Width="105" />
+                                                <ColumnDefinition Width="100" />
+                                                <ColumnDefinition Width="92" />
+                                            </Grid.ColumnDefinitions>
+
+                                            <Grid Grid.Column="0" HorizontalAlignment="Left">
+                                                <Border Width="30" Height="30" CornerRadius="15"
+                                                        Background="{StaticResource BrushPanelAlt}" BorderThickness="1"
+                                                        BorderBrush="{Binding AccountBrushKey, Converter={StaticResource ResBrush}}">
+                                                    <TextBlock Text="{Binding Initials}" FontSize="10"
+                                                               FontWeight="SemiBold" HorizontalAlignment="Center"
+                                                               VerticalAlignment="Center"
+                                                               Foreground="{Binding AccountBrushKey, Converter={StaticResource ResBrush}}" />
+                                                </Border>
+                                                <Ellipse Width="8" Height="8" HorizontalAlignment="Right"
+                                                         VerticalAlignment="Bottom" Margin="0,0,-1,-1"
+                                                         Stroke="{StaticResource BrushPanel}" StrokeThickness="1.5"
+                                                         Fill="{Binding PresenceBrushKey, Converter={StaticResource ResBrush}}" />
+                                            </Grid>
+
+                                            <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="0,0,10,0">
+                                                <TextBlock Text="{Binding FullName}" Style="{StaticResource Cell}"
+                                                           FontWeight="SemiBold" />
+                                                <TextBlock Style="{StaticResource CellDim}" Margin="0,3,0,0">
+                                                    <Run Text="{Binding Username, Mode=OneWay}" /><Run Text=" &#183; " /><Run Text="{Binding JobTitle, Mode=OneWay}" />
+                                                </TextBlock>
+                                            </StackPanel>
+
+                                            <TextBlock Grid.Column="2" Text="{Binding DepartmentLabel}"
+                                                       Style="{StaticResource CellDim}" />
+                                            <TextBlock Grid.Column="3" Text="{Binding WorkstationTag}"
+                                                       Style="{StaticResource CellMono}" FontSize="10" />
+                                            <TextBlock Grid.Column="4" Text="{Binding AccountLabel}" FontSize="9"
+                                                       FontWeight="SemiBold" VerticalAlignment="Center"
+                                                       Foreground="{Binding AccountBrushKey, Converter={StaticResource ResBrush}}" />
+                                        </Grid>
+                                    </RadioButton>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </ScrollViewer>
+                </Grid>
+            </Border>
+        </Grid>
+
+        <!-- ================= EMPLOYEE PROFILE ================= -->
+        <ScrollViewer Grid.Column="1" VerticalScrollBarVisibility="Auto" Padding="0,0,8,0"
+                      Visibility="{Binding HasSelection, Converter={StaticResource BoolToVis}}">
+            <StackPanel>
+
+                <Border Style="{StaticResource Panel}">
+                    <StackPanel>
+                        <StackPanel Orientation="Horizontal">
+                            <Border Width="52" Height="52" CornerRadius="26"
+                                    Background="{StaticResource BrushPanelAlt}" BorderThickness="1.5"
+                                    BorderBrush="{Binding Selected.AccountBrushKey, Converter={StaticResource ResBrush}}">
+                                <TextBlock Text="{Binding Selected.Initials}" FontSize="16" FontWeight="SemiBold"
+                                           HorizontalAlignment="Center" VerticalAlignment="Center"
+                                           Foreground="{Binding Selected.AccountBrushKey, Converter={StaticResource ResBrush}}" />
+                            </Border>
+                            <StackPanel Margin="16,0,0,0" VerticalAlignment="Center">
+                                <TextBlock Text="{Binding Selected.FullName}" FontSize="16" FontWeight="SemiBold" />
+                                <TextBlock Style="{StaticResource CellDim}" Margin="0,4,0,0">
+                                    <Run Text="{Binding Selected.DepartmentLabel, Mode=OneWay}" /><Run Text=" &#183; " /><Run Text="{Binding Selected.JobTitle, Mode=OneWay}" />
+                                </TextBlock>
+                                <StackPanel Orientation="Horizontal" Margin="0,7,0,0">
+                                    <Ellipse Style="{StaticResource PulseDot}" Width="7" Height="7"
+                                             Fill="{Binding Selected.PresenceBrushKey, Converter={StaticResource ResBrush}}" />
+                                    <TextBlock Text="{Binding Selected.PresenceLabel}" FontSize="9"
+                                               FontWeight="SemiBold" Margin="8,0,0,0" VerticalAlignment="Center"
+                                               Foreground="{Binding Selected.PresenceBrushKey, Converter={StaticResource ResBrush}}" />
+                                    <TextBlock Text="{Binding Selected.LastActivityDisplay}"
+                                               Style="{StaticResource CellDim}" Margin="12,0,0,0"
+                                               VerticalAlignment="Center" />
+                                </StackPanel>
+                            </StackPanel>
+                        </StackPanel>
+
+                        <Border Style="{StaticResource Divider}" Margin="0,16,0,12" />
+
+                        <TextBlock Style="{StaticResource SectionLabel}" ctrl:Tracking.Text="ACCOUNT" />
+                        <UniformGrid Columns="2" Margin="0,10,0,0">
+                            <StackPanel Margin="0,0,10,12">
+                                <TextBlock Style="{StaticResource ColHead}" ctrl:Tracking.Text="USERNAME" />
+                                <TextBlock Text="{Binding Selected.Username}" Style="{StaticResource CellMono}"
+                                           Margin="0,4,0,0" />
+                            </StackPanel>
+                            <StackPanel Margin="0,0,0,12">
+                                <TextBlock Style="{StaticResource ColHead}" ctrl:Tracking.Text="EMAIL" />
+                                <TextBlock Text="{Binding Selected.Email}" Style="{StaticResource CellMono}"
+                                           Margin="0,4,0,0" TextTrimming="CharacterEllipsis" />
+                            </StackPanel>
+                            <StackPanel Margin="0,0,10,12">
+                                <TextBlock Style="{StaticResource ColHead}" ctrl:Tracking.Text="STATUS" />
+                                <TextBlock Text="{Binding Selected.AccountLabel}" FontSize="11.5" FontWeight="SemiBold"
+                                           Margin="0,4,0,0"
+                                           Foreground="{Binding Selected.AccountBrushKey, Converter={StaticResource ResBrush}}" />
+                            </StackPanel>
+                            <StackPanel Margin="0,0,0,12">
+                                <TextBlock Style="{StaticResource ColHead}" ctrl:Tracking.Text="MFA" />
+                                <TextBlock Text="{Binding Selected.MfaLabel}" Style="{StaticResource Cell}"
+                                           Margin="0,4,0,0" />
+                            </StackPanel>
+                            <StackPanel Margin="0,0,10,0">
+                                <TextBlock Style="{StaticResource ColHead}" ctrl:Tracking.Text="PASSWORD" />
+                                <TextBlock Text="{Binding Selected.PasswordStatusLabel}" Style="{StaticResource Cell}"
+                                           Margin="0,4,0,0" />
+                            </StackPanel>
+                            <StackPanel>
+                                <TextBlock Style="{StaticResource ColHead}" ctrl:Tracking.Text="GROUPS" />
+                                <TextBlock Text="{Binding GroupList}" Style="{StaticResource CellDim}"
+                                           Margin="0,4,0,0" TextWrapping="Wrap" />
+                            </StackPanel>
+                        </UniformGrid>
+                    </StackPanel>
+                </Border>
+
+                <!-- Actions -->
+                <Border Style="{StaticResource Panel}" Margin="0,14,0,0">
+                    <StackPanel>
+                        <TextBlock Style="{StaticResource SectionLabel}" ctrl:Tracking.Text="ADMINISTRATIVE ACTIONS" />
+                        <WrapPanel Margin="0,12,0,0">
+                            <Button Style="{StaticResource BtnSmall}" Content="RESET PASSWORD" Margin="0,0,8,8"
+                                    Command="{Binding ResetPasswordCommand}" />
+                            <Button Style="{StaticResource BtnSmall}" Content="UNLOCK" Margin="0,0,8,8"
+                                    Command="{Binding UnlockCommand}" />
+                            <Button Style="{StaticResource BtnSmallGhost}" Content="ENABLE" Margin="0,0,8,8"
+                                    Command="{Binding EnableCommand}" />
+                            <Button Style="{StaticResource BtnSmallGhost}" Content="DISABLE" Margin="0,0,8,8"
+                                    Command="{Binding DisableCommand}" />
+                            <Button Style="{StaticResource BtnSmallGhost}" Content="RESET MFA" Margin="0,0,8,8"
+                                    Command="{Binding ResetMfaCommand}" />
+                            <Button Style="{StaticResource BtnSmallGhost}" Content="ENROLL MFA" Margin="0,0,8,8"
+                                    Command="{Binding EnrollMfaCommand}" />
+                            <Button Style="{StaticResource BtnSmallGhost}" Content="REMOTE SUPPORT" Margin="0,0,8,8"
+                                    Command="{Binding RemoteSupportCommand}"
+                                    ToolTip="Simulated workstation console is not implemented yet" />
+                        </WrapPanel>
+
+                        <TextBlock Style="{StaticResource SectionLabel}" Margin="0,6,0,0"
+                                   ctrl:Tracking.Text="CHANGE DEPARTMENT" />
+                        <ItemsControl ItemsSource="{Binding Departments}" Margin="0,8,0,0">
+                            <ItemsControl.ItemsPanel>
+                                <ItemsPanelTemplate><WrapPanel /></ItemsPanelTemplate>
+                            </ItemsControl.ItemsPanel>
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Button Style="{StaticResource BtnSmallGhost}" Content="{Binding}" Margin="0,0,7,7"
+                                            Command="{Binding DataContext.ChangeDepartmentCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                            CommandParameter="{Binding}" />
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+
+                        <Border Style="{StaticResource InsetPanel}" Padding="12,10" Margin="0,8,0,0">
+                            <TextBlock Style="{StaticResource Muted}" FontSize="10" TextWrapping="Wrap"
+                                       Text="These actions change the simulated company only. No credential is generated or stored, and nothing here touches a real account or machine. Every action is written to the audit trail." />
+                        </Border>
+                    </StackPanel>
+                </Border>
+
+                <!-- Device -->
+                <Border Style="{StaticResource Panel}" Margin="0,14,0,0"
+                        Visibility="{Binding SelectedWorkstation, Converter={StaticResource NullToVis}}">
+                    <StackPanel>
+                        <Grid>
+                            <TextBlock Style="{StaticResource SectionLabel}" ctrl:Tracking.Text="ASSIGNED WORKSTATION" />
+                            <TextBlock Text="{Binding SelectedWorkstation.HealthLabel}" FontSize="9"
+                                       FontWeight="SemiBold" HorizontalAlignment="Right"
+                                       Foreground="{Binding SelectedWorkstation.HealthBrushKey, Converter={StaticResource ResBrush}}" />
+                        </Grid>
+
+                        <StackPanel Orientation="Horizontal" Margin="0,12,0,0">
+                            <TextBlock Text="{ctrl:Glyph Workstation}" FontFamily="{StaticResource FontIcon}"
+                                       FontSize="15" VerticalAlignment="Center"
+                                       Foreground="{Binding SelectedWorkstation.StatusBrushKey, Converter={StaticResource ResBrush}}" />
+                            <StackPanel Margin="12,0,0,0">
+                                <TextBlock Text="{Binding SelectedWorkstation.AssetTag}" Style="{StaticResource Cell}"
+                                           FontWeight="SemiBold" />
+                                <TextBlock Style="{StaticResource CellDim}" Margin="0,3,0,0">
+                                    <Run Text="{Binding SelectedWorkstation.Model, Mode=OneWay}" /><Run Text=" &#183; " /><Run Text="{Binding SelectedWorkstation.IpAddress, Mode=OneWay}" />
+                                </TextBlock>
+                            </StackPanel>
+                        </StackPanel>
+
+                        <UniformGrid Columns="4" Margin="0,14,0,0">
+                            <StackPanel>
+                                <TextBlock Text="{Binding SelectedWorkstation.CpuPercent}" Style="{StaticResource Mono}"
+                                           FontSize="14" FontWeight="SemiBold" />
+                                <TextBlock Style="{StaticResource MetricLabel}" FontSize="7.5" ctrl:Tracking.Text="CPU" />
+                            </StackPanel>
+                            <StackPanel>
+                                <TextBlock Text="{Binding SelectedWorkstation.MemoryPercent}" Style="{StaticResource Mono}"
+                                           FontSize="14" FontWeight="SemiBold" />
+                                <TextBlock Style="{StaticResource MetricLabel}" FontSize="7.5" ctrl:Tracking.Text="MEMORY" />
+                            </StackPanel>
+                            <StackPanel>
+                                <TextBlock Text="{Binding SelectedWorkstation.DiskPercent}" Style="{StaticResource Mono}"
+                                           FontSize="14" FontWeight="SemiBold" />
+                                <TextBlock Style="{StaticResource MetricLabel}" FontSize="7.5" ctrl:Tracking.Text="DISK" />
+                            </StackPanel>
+                            <StackPanel>
+                                <TextBlock Text="{Binding SelectedWorkstation.UptimeDisplay}" Style="{StaticResource Mono}"
+                                           FontSize="14" FontWeight="SemiBold" />
+                                <TextBlock Style="{StaticResource MetricLabel}" FontSize="7.5" ctrl:Tracking.Text="UPTIME" />
+                            </StackPanel>
+                        </UniformGrid>
+                    </StackPanel>
+                </Border>
+
+                <!-- Applications -->
+                <Border Style="{StaticResource Panel}" Margin="0,14,0,0">
+                    <StackPanel>
+                        <TextBlock Style="{StaticResource SectionLabel}" ctrl:Tracking.Text="ASSIGNED APPLICATIONS" />
+                        <ItemsControl ItemsSource="{Binding Selected.Applications}" Margin="0,10,0,0">
+                            <ItemsControl.ItemsPanel>
+                                <ItemsPanelTemplate><WrapPanel /></ItemsPanelTemplate>
+                            </ItemsControl.ItemsPanel>
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Border Style="{StaticResource Pill}" Margin="0,0,7,7" Padding="9,4"
+                                            BorderBrush="{StaticResource BrushBorder}">
+                                        <TextBlock Text="{Binding}" FontSize="10"
+                                                   Foreground="{StaticResource BrushTextDim}" />
+                                    </Border>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </StackPanel>
+                </Border>
+
+                <!-- Tickets -->
+                <Border Style="{StaticResource Panel}" Margin="0,14,0,0">
+                    <StackPanel>
+                        <Grid>
+                            <TextBlock Style="{StaticResource SectionLabel}" ctrl:Tracking.Text="TICKETS" />
+                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                                <TextBlock Style="{StaticResource CellDim}" VerticalAlignment="Center">
+                                    <Run Text="{Binding OpenTicketCount, Mode=OneWay}" /><Run Text=" OPEN &#183; " /><Run Text="{Binding ResolvedTicketCount, Mode=OneWay}" /><Run Text=" RESOLVED" />
+                                </TextBlock>
+                                <Button Style="{StaticResource BtnSmallGhost}" Content="SERVICE DESK" Margin="10,0,0,0"
+                                        Command="{Binding OpenServiceDeskCommand}" />
+                            </StackPanel>
+                        </Grid>
+
+                        <ItemsControl ItemsSource="{Binding SelectedTickets}" Margin="0,12,0,0">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Button Style="{StaticResource RowItem}" Padding="10,8" Margin="0,0,0,2"
+                                            Command="{Binding DataContext.OpenTicketCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                            CommandParameter="{Binding}">
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="78" />
+                                                <ColumnDefinition Width="*" />
+                                                <ColumnDefinition Width="Auto" />
+                                            </Grid.ColumnDefinitions>
+                                            <TextBlock Grid.Column="0" Text="{Binding Reference}"
+                                                       Style="{StaticResource CellMono}" FontSize="10" />
+                                            <TextBlock Grid.Column="1" Text="{Binding Title}"
+                                                       Style="{StaticResource Cell}" FontSize="11" Margin="0,0,10,0"
+                                                       TextTrimming="CharacterEllipsis" />
+                                            <TextBlock Grid.Column="2" Text="{Binding StatusLabel}" FontSize="9"
+                                                       FontWeight="SemiBold" VerticalAlignment="Center"
+                                                       Foreground="{Binding StatusBrushKey, Converter={StaticResource ResBrush}}" />
+                                        </Grid>
+                                    </Button>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+
+                        <TextBlock Text="No tickets from this employee." Style="{StaticResource Muted}" FontSize="10"
+                                   Margin="0,8,0,0"
+                                   Visibility="{Binding SelectedTickets.Count, Converter={StaticResource CountToVisInv}}" />
+                    </StackPanel>
+                </Border>
+
+                <!-- Account activity -->
+                <Border Style="{StaticResource Panel}" Margin="0,14,0,0"
+                        Visibility="{Binding SelectedEvents.Count, Converter={StaticResource CountToVis}}">
+                    <StackPanel>
+                        <TextBlock Style="{StaticResource SectionLabel}" ctrl:Tracking.Text="ACCOUNT ACTIVITY" />
+                        <ItemsControl ItemsSource="{Binding SelectedEvents}" Margin="0,12,0,0">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Grid Margin="0,0,0,10">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="62" />
+                                            <ColumnDefinition Width="Auto" />
+                                            <ColumnDefinition Width="*" />
+                                        </Grid.ColumnDefinitions>
+                                        <TextBlock Grid.Column="0" Text="{Binding TimeDisplay}"
+                                                   Style="{StaticResource CellMono}" VerticalAlignment="Top" />
+                                        <Border Grid.Column="1" Width="2" Margin="6,3,10,0" CornerRadius="1"
+                                                Background="{Binding CategoryBrushKey, Converter={StaticResource ResBrush}}" />
+                                        <StackPanel Grid.Column="2">
+                                            <TextBlock Text="{Binding Message}" Style="{StaticResource CellMono}"
+                                                       FontSize="10" TextWrapping="Wrap"
+                                                       Foreground="{StaticResource BrushAccent}" />
+                                            <TextBlock Text="{Binding Detail}" Style="{StaticResource CellDim}"
+                                                       TextWrapping="Wrap" Margin="0,3,0,0" />
+                                        </StackPanel>
+                                    </Grid>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </StackPanel>
+                </Border>
+            </StackPanel>
+        </ScrollViewer>
+    </Grid>
+</UserControl>

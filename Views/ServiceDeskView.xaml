@@ -1,0 +1,450 @@
+<UserControl x:Class="NEXUS.Views.ServiceDeskView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:ctrl="clr-namespace:NEXUS.Controls">
+
+    <Grid Margin="28,0,20,24">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="1.05*" MinWidth="400" />
+            <ColumnDefinition Width="1.25*" MinWidth="440" />
+        </Grid.ColumnDefinitions>
+
+        <!-- ================= QUEUE ================= -->
+        <Grid Grid.Column="0" Margin="0,0,14,0">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="*" />
+            </Grid.RowDefinitions>
+
+            <Border Grid.Row="0" Style="{StaticResource Panel}" Padding="18,14">
+                <UniformGrid Columns="4">
+                    <StackPanel>
+                        <TextBlock Text="{Binding OpenCount}" Style="{StaticResource MetricValue}" FontSize="20" />
+                        <TextBlock Style="{StaticResource MetricLabel}" ctrl:Tracking.Text="OPEN" />
+                    </StackPanel>
+                    <StackPanel>
+                        <TextBlock Text="{Binding UnassignedCount}" Style="{StaticResource MetricValue}" FontSize="20" />
+                        <TextBlock Style="{StaticResource MetricLabel}" ctrl:Tracking.Text="UNASSIGNED" />
+                    </StackPanel>
+                    <StackPanel>
+                        <TextBlock Text="{Binding HighCount}" Style="{StaticResource MetricValue}" FontSize="20"
+                                   Foreground="{StaticResource BrushHigh}" />
+                        <TextBlock Style="{StaticResource MetricLabel}" ctrl:Tracking.Text="HIGH" />
+                    </StackPanel>
+                    <StackPanel>
+                        <TextBlock Text="{Binding CriticalCount}" Style="{StaticResource MetricValue}" FontSize="20"
+                                   Foreground="{StaticResource BrushCritical}" />
+                        <TextBlock Style="{StaticResource MetricLabel}" ctrl:Tracking.Text="CRITICAL" />
+                    </StackPanel>
+                </UniformGrid>
+            </Border>
+
+            <Border Grid.Row="1" Style="{StaticResource Panel}" Margin="0,14,0,0" Padding="16">
+                <StackPanel>
+                    <Grid>
+                        <TextBox Style="{StaticResource Input}" Padding="34,8,10,8"
+                                 Text="{Binding Search, UpdateSourceTrigger=PropertyChanged, Delay=140}" />
+                        <TextBlock Text="{ctrl:Glyph Search}" FontFamily="{StaticResource FontIcon}" FontSize="12"
+                                   Margin="12,0,0,0" VerticalAlignment="Center" IsHitTestVisible="False"
+                                   Foreground="{StaticResource BrushTextMuted}" />
+                        <TextBlock Text="Search reference, title, requester or device" IsHitTestVisible="False"
+                                   Margin="34,0,0,0" VerticalAlignment="Center" FontSize="12"
+                                   Foreground="{StaticResource BrushTextMuted}"
+                                   Visibility="{Binding Search, Converter={StaticResource StrToVisInv}}" />
+                    </Grid>
+
+                    <ItemsControl ItemsSource="{Binding Queues}" Margin="0,12,0,0">
+                        <ItemsControl.ItemsPanel>
+                            <ItemsPanelTemplate><WrapPanel /></ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <ToggleButton Style="{StaticResource Chip}" Content="{Binding}"
+                                              Command="{Binding DataContext.SetQueueCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                              CommandParameter="{Binding}">
+                                    <ToggleButton.IsChecked>
+                                        <MultiBinding Converter="{StaticResource MultiEq}" Mode="OneWay">
+                                            <Binding />
+                                            <Binding Path="DataContext.Queue"
+                                                     RelativeSource="{RelativeSource AncestorType=UserControl}" />
+                                        </MultiBinding>
+                                    </ToggleButton.IsChecked>
+                                </ToggleButton>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </StackPanel>
+            </Border>
+
+            <Border Grid.Row="2" Style="{StaticResource Panel}" Margin="0,14,0,0" Padding="14,14,8,14">
+                <ScrollViewer VerticalScrollBarVisibility="Auto">
+                    <StackPanel>
+                        <ItemsControl ItemsSource="{Binding Visible}" Margin="0,0,6,0">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <RadioButton GroupName="TicketRow" Style="{StaticResource RowButton}"
+                                                 Command="{Binding DataContext.SelectCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                 CommandParameter="{Binding}">
+                                        <RadioButton.IsChecked>
+                                            <MultiBinding Converter="{StaticResource SameObj}" Mode="OneWay">
+                                                <Binding />
+                                                <Binding Path="DataContext.Selected"
+                                                         RelativeSource="{RelativeSource AncestorType=UserControl}" />
+                                            </MultiBinding>
+                                        </RadioButton.IsChecked>
+
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="Auto" />
+                                                <ColumnDefinition Width="*" />
+                                                <ColumnDefinition Width="Auto" />
+                                            </Grid.ColumnDefinitions>
+
+                                            <Border Grid.Column="0" Width="3" CornerRadius="2" Margin="0,2,12,2"
+                                                    Background="{Binding PriorityBrushKey, Converter={StaticResource ResBrush}}" />
+
+                                            <StackPanel Grid.Column="1" Margin="0,0,10,0">
+                                                <StackPanel Orientation="Horizontal">
+                                                    <TextBlock Text="{Binding Reference}"
+                                                               Style="{StaticResource CellMono}" FontSize="10"
+                                                               Foreground="{StaticResource BrushAccent}" />
+                                                    <TextBlock Text="{Binding PriorityLabel}" FontSize="8.5"
+                                                               FontWeight="SemiBold" Margin="10,0,0,0"
+                                                               VerticalAlignment="Center"
+                                                               Foreground="{Binding PriorityBrushKey, Converter={StaticResource ResBrush}}" />
+                                                    <TextBlock Text="{Binding CategoryLabel}" FontSize="8.5"
+                                                               Margin="10,0,0,0" VerticalAlignment="Center"
+                                                               Foreground="{StaticResource BrushTextMuted}" />
+                                                </StackPanel>
+
+                                                <TextBlock Text="{Binding Title}" Style="{StaticResource Cell}"
+                                                           FontWeight="SemiBold" Margin="0,5,0,0"
+                                                           TextTrimming="CharacterEllipsis" />
+
+                                                <TextBlock Style="{StaticResource CellDim}" Margin="0,4,0,0">
+                                                    <Run Text="{Binding RequesterUsername, Mode=OneWay}" /><Run Text=" &#183; " /><Run Text="{Binding DepartmentLabel, Mode=OneWay}" /><Run Text=" &#183; " /><Run Text="{Binding WorkstationTag, Mode=OneWay}" />
+                                                </TextBlock>
+                                            </StackPanel>
+
+                                            <StackPanel Grid.Column="2" HorizontalAlignment="Right">
+                                                <TextBlock Text="{Binding StatusLabel}" FontSize="9"
+                                                           FontWeight="SemiBold" HorizontalAlignment="Right"
+                                                           Foreground="{Binding StatusBrushKey, Converter={StaticResource ResBrush}}" />
+                                                <TextBlock Text="{Binding AgeDisplay}" Style="{StaticResource CellMono}"
+                                                           FontSize="10" HorizontalAlignment="Right" Margin="0,5,0,0" />
+                                                <TextBlock Text="{Binding AssignedLabel}" Style="{StaticResource CellDim}"
+                                                           FontSize="8.5" HorizontalAlignment="Right" Margin="0,4,0,0"
+                                                           TextTrimming="CharacterEllipsis" MaxWidth="110" />
+                                            </StackPanel>
+                                        </Grid>
+                                    </RadioButton>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+
+                        <TextBlock Text="This queue is empty." Style="{StaticResource Muted}" Margin="12,16,0,0"
+                                   Visibility="{Binding Visible.Count, Converter={StaticResource CountToVisInv}}" />
+                    </StackPanel>
+                </ScrollViewer>
+            </Border>
+        </Grid>
+
+        <!-- ================= TICKET CONSOLE ================= -->
+        <ScrollViewer Grid.Column="1" VerticalScrollBarVisibility="Auto" Padding="0,0,8,0"
+                      Visibility="{Binding HasSelection, Converter={StaticResource BoolToVis}}">
+            <StackPanel>
+
+                <!-- Header + actions -->
+                <Border Style="{StaticResource Panel}">
+                    <StackPanel>
+                        <Grid>
+                            <StackPanel>
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Text="{Binding Selected.Reference}" Style="{StaticResource Mono}"
+                                               FontSize="13" FontWeight="SemiBold"
+                                               Foreground="{StaticResource BrushAccent}" />
+                                    <Border Style="{StaticResource Pill}" Margin="12,0,0,0"
+                                            BorderBrush="{Binding Selected.StatusBrushKey, Converter={StaticResource ResBrush}}">
+                                        <TextBlock Style="{StaticResource PillText}" Text="{Binding Selected.StatusLabel}"
+                                                   Foreground="{Binding Selected.StatusBrushKey, Converter={StaticResource ResBrush}}" />
+                                    </Border>
+                                    <Border Style="{StaticResource Pill}" Margin="8,0,0,0"
+                                            BorderBrush="{Binding Selected.PriorityBrushKey, Converter={StaticResource ResBrush}}">
+                                        <TextBlock Style="{StaticResource PillText}" Text="{Binding Selected.PriorityLabel}"
+                                                   Foreground="{Binding Selected.PriorityBrushKey, Converter={StaticResource ResBrush}}" />
+                                    </Border>
+                                    <Border Style="{StaticResource Pill}" Margin="8,0,0,0"
+                                            BorderBrush="{StaticResource BrushBorder}">
+                                        <TextBlock Style="{StaticResource PillText}"
+                                                   Text="{Binding Selected.DifficultyLabel}"
+                                                   Foreground="{StaticResource BrushTextMuted}" />
+                                    </Border>
+                                </StackPanel>
+
+                                <TextBlock Text="{Binding Selected.Title}" FontSize="16" FontWeight="SemiBold"
+                                           Margin="0,10,0,0" TextWrapping="Wrap" />
+                                <TextBlock Text="{Binding Selected.Description}" Style="{StaticResource Muted}"
+                                           FontSize="11" Margin="0,6,0,0" TextWrapping="Wrap" />
+                            </StackPanel>
+                        </Grid>
+
+                        <Border Style="{StaticResource Divider}" Margin="0,16,0,12" />
+
+                        <UniformGrid Columns="4">
+                            <StackPanel>
+                                <TextBlock Style="{StaticResource SectionLabel}" ctrl:Tracking.Text="REQUESTER" />
+                                <TextBlock Text="{Binding Requester.FullName}" Style="{StaticResource Cell}"
+                                           Margin="0,4,0,0" TextTrimming="CharacterEllipsis" />
+                            </StackPanel>
+                            <StackPanel>
+                                <TextBlock Style="{StaticResource SectionLabel}" ctrl:Tracking.Text="DEPARTMENT" />
+                                <TextBlock Text="{Binding Selected.DepartmentLabel}" Style="{StaticResource Cell}"
+                                           Margin="0,4,0,0" />
+                            </StackPanel>
+                            <StackPanel>
+                                <TextBlock Style="{StaticResource SectionLabel}" ctrl:Tracking.Text="DEVICE" />
+                                <TextBlock Text="{Binding Selected.WorkstationTag}" Style="{StaticResource CellMono}"
+                                           Margin="0,4,0,0" />
+                            </StackPanel>
+                            <StackPanel>
+                                <TextBlock Style="{StaticResource SectionLabel}" ctrl:Tracking.Text="RAISED" />
+                                <TextBlock Text="{Binding Selected.CreatedDisplay}" Style="{StaticResource CellMono}"
+                                           Margin="0,4,0,0" FontSize="10" />
+                            </StackPanel>
+                        </UniformGrid>
+
+                        <Border Style="{StaticResource Divider}" Margin="0,14,0,12" />
+
+                        <TextBlock Style="{StaticResource SectionLabel}" ctrl:Tracking.Text="ACTIONS" />
+                        <WrapPanel Margin="0,10,0,0">
+                            <Button Style="{StaticResource BtnSmall}" Content="ASSIGN TO ME" Margin="0,0,8,8"
+                                    Command="{Binding AssignToMeCommand}" />
+                            <Button Style="{StaticResource BtnSmallGhost}" Content="VIEW USER" Margin="0,0,8,8"
+                                    Command="{Binding ViewUserCommand}" />
+                            <Button Style="{StaticResource BtnSmallGhost}" Content="VIEW EVENTS" Margin="0,0,8,8"
+                                    Command="{Binding ViewEventsCommand}" />
+                            <Button Style="{StaticResource BtnPrimary}" Content="RESOLVE" Padding="12,6" FontSize="9.5"
+                                    Margin="0,0,8,8" Command="{Binding ResolveCommand}" />
+                        </WrapPanel>
+
+                        <TextBlock Style="{StaticResource SectionLabel}" Margin="0,6,0,0" ctrl:Tracking.Text="STATUS" />
+                        <ItemsControl ItemsSource="{Binding Statuses}" Margin="0,8,0,0">
+                            <ItemsControl.ItemsPanel>
+                                <ItemsPanelTemplate><WrapPanel /></ItemsPanelTemplate>
+                            </ItemsControl.ItemsPanel>
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Button Style="{StaticResource BtnSmallGhost}" Content="{Binding}" Margin="0,0,7,7"
+                                            Command="{Binding DataContext.SetStatusCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                            CommandParameter="{Binding}" />
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+
+                        <TextBlock Style="{StaticResource SectionLabel}" Margin="0,6,0,0" ctrl:Tracking.Text="PRIORITY" />
+                        <ItemsControl ItemsSource="{Binding Priorities}" Margin="0,8,0,0">
+                            <ItemsControl.ItemsPanel>
+                                <ItemsPanelTemplate><WrapPanel /></ItemsPanelTemplate>
+                            </ItemsControl.ItemsPanel>
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Button Style="{StaticResource BtnSmallGhost}" Content="{Binding}" Margin="0,0,7,7"
+                                            Command="{Binding DataContext.SetPriorityCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                            CommandParameter="{Binding}" />
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </StackPanel>
+                </Border>
+
+                <!-- Requester environment -->
+                <Border Style="{StaticResource Panel}" Margin="0,14,0,0"
+                        Visibility="{Binding Requester, Converter={StaticResource NullToVis}}">
+                    <StackPanel>
+                        <Grid>
+                            <TextBlock Style="{StaticResource SectionLabel}" ctrl:Tracking.Text="REQUESTER ENVIRONMENT" />
+                            <Border Style="{StaticResource Pill}" HorizontalAlignment="Right"
+                                    BorderBrush="{StaticResource BrushLow}">
+                                <TextBlock Style="{StaticResource PillText}" Text="SIMULATED"
+                                           Foreground="{StaticResource BrushLow}" />
+                            </Border>
+                        </Grid>
+
+                        <Grid Margin="0,12,0,0">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+
+                            <Border Grid.Column="0" Width="42" Height="42" CornerRadius="21"
+                                    Background="{StaticResource BrushPanelAlt}" BorderThickness="1.5"
+                                    BorderBrush="{Binding Requester.AccountBrushKey, Converter={StaticResource ResBrush}}">
+                                <TextBlock Text="{Binding Requester.Initials}" FontSize="13" FontWeight="SemiBold"
+                                           HorizontalAlignment="Center" VerticalAlignment="Center"
+                                           Foreground="{Binding Requester.AccountBrushKey, Converter={StaticResource ResBrush}}" />
+                            </Border>
+
+                            <StackPanel Grid.Column="1" Margin="14,0,0,0" VerticalAlignment="Center">
+                                <TextBlock Text="{Binding Requester.FullName}" Style="{StaticResource Cell}"
+                                           FontWeight="SemiBold" />
+                                <TextBlock Style="{StaticResource CellDim}" Margin="0,4,0,0">
+                                    <Run Text="{Binding Requester.JobTitle, Mode=OneWay}" /><Run Text=" &#183; " /><Run Text="{Binding Requester.Email, Mode=OneWay}" />
+                                </TextBlock>
+                                <StackPanel Orientation="Horizontal" Margin="0,6,0,0">
+                                    <TextBlock Text="{Binding Requester.AccountLabel}" FontSize="9"
+                                               FontWeight="SemiBold"
+                                               Foreground="{Binding Requester.AccountBrushKey, Converter={StaticResource ResBrush}}" />
+                                    <TextBlock Text="{Binding Requester.PresenceLabel}" FontSize="9" Margin="10,0,0,0"
+                                               Foreground="{Binding Requester.PresenceBrushKey, Converter={StaticResource ResBrush}}" />
+                                </StackPanel>
+                            </StackPanel>
+                        </Grid>
+
+                        <Border Style="{StaticResource InsetPanel}" Padding="14,12" Margin="0,14,0,0"
+                                Visibility="{Binding RequesterWorkstation, Converter={StaticResource NullToVis}}">
+                            <StackPanel>
+                                <Grid>
+                                    <StackPanel Orientation="Horizontal">
+                                        <TextBlock Text="{ctrl:Glyph Workstation}" FontFamily="{StaticResource FontIcon}"
+                                                   FontSize="13" VerticalAlignment="Center"
+                                                   Foreground="{Binding RequesterWorkstation.HealthBrushKey, Converter={StaticResource ResBrush}}" />
+                                        <TextBlock Text="{Binding RequesterWorkstation.AssetTag}"
+                                                   Style="{StaticResource Cell}" FontWeight="SemiBold"
+                                                   Margin="10,0,0,0" />
+                                        <TextBlock Text="{Binding RequesterWorkstation.HealthLabel}" FontSize="9"
+                                                   FontWeight="SemiBold" Margin="10,0,0,0" VerticalAlignment="Center"
+                                                   Foreground="{Binding RequesterWorkstation.HealthBrushKey, Converter={StaticResource ResBrush}}" />
+                                    </StackPanel>
+                                    <TextBlock Text="{Binding RequesterWorkstation.OperatingSystem}"
+                                               Style="{StaticResource CellDim}" HorizontalAlignment="Right" />
+                                </Grid>
+
+                                <UniformGrid Columns="4" Margin="0,12,0,0">
+                                    <StackPanel>
+                                        <TextBlock Text="{Binding RequesterWorkstation.CpuPercent}"
+                                                   Style="{StaticResource Mono}" FontSize="14" FontWeight="SemiBold" />
+                                        <TextBlock Style="{StaticResource MetricLabel}" FontSize="7.5"
+                                                   ctrl:Tracking.Text="CPU" />
+                                    </StackPanel>
+                                    <StackPanel>
+                                        <TextBlock Text="{Binding RequesterWorkstation.MemoryPercent}"
+                                                   Style="{StaticResource Mono}" FontSize="14" FontWeight="SemiBold" />
+                                        <TextBlock Style="{StaticResource MetricLabel}" FontSize="7.5"
+                                                   ctrl:Tracking.Text="MEMORY" />
+                                    </StackPanel>
+                                    <StackPanel>
+                                        <TextBlock Text="{Binding RequesterWorkstation.DiskPercent}"
+                                                   Style="{StaticResource Mono}" FontSize="14" FontWeight="SemiBold" />
+                                        <TextBlock Style="{StaticResource MetricLabel}" FontSize="7.5"
+                                                   ctrl:Tracking.Text="DISK" />
+                                    </StackPanel>
+                                    <StackPanel>
+                                        <TextBlock Text="{Binding RequesterWorkstation.UptimeDisplay}"
+                                                   Style="{StaticResource Mono}" FontSize="14" FontWeight="SemiBold" />
+                                        <TextBlock Style="{StaticResource MetricLabel}" FontSize="7.5"
+                                                   ctrl:Tracking.Text="UPTIME" />
+                                    </StackPanel>
+                                </UniformGrid>
+
+                                <TextBlock Text="{Binding RequesterWorkstation.FreeDiskDisplay}"
+                                           Style="{StaticResource CellDim}" Margin="0,10,0,0" />
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
+                </Border>
+
+                <!-- Conversation -->
+                <Border Style="{StaticResource Panel}" Margin="0,14,0,0">
+                    <StackPanel>
+                        <Grid>
+                            <TextBlock Style="{StaticResource SectionLabel}" ctrl:Tracking.Text="CONVERSATION" />
+                            <TextBlock Text="{Binding ResponderLabel}" Style="{StaticResource CellDim}"
+                                       FontSize="8.5" HorizontalAlignment="Right" />
+                        </Grid>
+
+                        <ItemsControl ItemsSource="{Binding Selected.Conversation}" Margin="0,14,0,0">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Border Style="{StaticResource InsetPanel}" Padding="14,11" Margin="0,0,0,8">
+                                        <StackPanel>
+                                            <Grid>
+                                                <StackPanel Orientation="Horizontal">
+                                                    <Border Width="3" Height="12" CornerRadius="2"
+                                                            VerticalAlignment="Center"
+                                                            Background="{Binding BrushKey, Converter={StaticResource ResBrush}}" />
+                                                    <TextBlock Text="{Binding Author}" Style="{StaticResource Cell}"
+                                                               FontWeight="SemiBold" FontSize="11" Margin="10,0,0,0" />
+                                                    <TextBlock Text="{Binding AlignLabel}" FontSize="8"
+                                                               Margin="10,0,0,0" VerticalAlignment="Center"
+                                                               Foreground="{StaticResource BrushTextMuted}" />
+                                                </StackPanel>
+                                                <TextBlock Style="{StaticResource CellMono}" FontSize="9.5"
+                                                           HorizontalAlignment="Right">
+                                                    <Run Text="{Binding DateDisplay, Mode=OneWay}" /><Run Text=" " /><Run Text="{Binding TimeDisplay, Mode=OneWay}" />
+                                                </TextBlock>
+                                            </Grid>
+                                            <TextBlock Text="{Binding Body}" Style="{StaticResource Cell}"
+                                                       FontSize="11.5" TextWrapping="Wrap" Margin="13,8,0,0" />
+                                        </StackPanel>
+                                    </Border>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+
+                        <Grid Margin="0,8,0,0">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <TextBox Grid.Column="0" Style="{StaticResource Input}" Margin="0,0,10,0"
+                                     AcceptsReturn="False" TextWrapping="Wrap"
+                                     Text="{Binding Reply, UpdateSourceTrigger=PropertyChanged}"
+                                     ToolTip="Ask the requester a question" />
+                            <Button Grid.Column="1" Style="{StaticResource Btn}" Content="SEND" Padding="18,8"
+                                    Command="{Binding SendCommand}" />
+                        </Grid>
+
+                        <TextBlock Style="{StaticResource Muted}" FontSize="9.5" Margin="0,10,0,0" TextWrapping="Wrap"
+                                   Text="Replies are produced by a rule-based simulation driven by this ticket, the requester's device state and their account status. There is no language model behind them." />
+                    </StackPanel>
+                </Border>
+
+                <!-- Requester history -->
+                <Border Style="{StaticResource Panel}" Margin="0,14,0,0"
+                        Visibility="{Binding Requester, Converter={StaticResource NullToVis}}">
+                    <StackPanel>
+                        <TextBlock Style="{StaticResource SectionLabel}" ctrl:Tracking.Text="PREVIOUS TICKETS" />
+                        <ItemsControl ItemsSource="{Binding PreviousTickets}" Margin="0,12,0,0">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Button Style="{StaticResource RowItem}" Padding="10,8" Margin="0,0,0,2"
+                                            Command="{Binding DataContext.SelectCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                            CommandParameter="{Binding}">
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="80" />
+                                                <ColumnDefinition Width="*" />
+                                                <ColumnDefinition Width="Auto" />
+                                            </Grid.ColumnDefinitions>
+                                            <TextBlock Grid.Column="0" Text="{Binding Reference}"
+                                                       Style="{StaticResource CellMono}" FontSize="10" />
+                                            <TextBlock Grid.Column="1" Text="{Binding Title}"
+                                                       Style="{StaticResource Cell}" FontSize="11"
+                                                       Margin="0,0,10,0" TextTrimming="CharacterEllipsis" />
+                                            <TextBlock Grid.Column="2" Text="{Binding StatusLabel}" FontSize="9"
+                                                       FontWeight="SemiBold" VerticalAlignment="Center"
+                                                       Foreground="{Binding StatusBrushKey, Converter={StaticResource ResBrush}}" />
+                                        </Grid>
+                                    </Button>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                        <TextBlock Text="No other tickets from this requester." Style="{StaticResource Muted}"
+                                   FontSize="10" Margin="0,8,0,0" />
+                    </StackPanel>
+                </Border>
+            </StackPanel>
+        </ScrollViewer>
+    </Grid>
+</UserControl>

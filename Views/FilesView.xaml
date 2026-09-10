@@ -1,0 +1,474 @@
+<UserControl x:Class="NEXUS.Views.FilesView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:ctrl="clr-namespace:NEXUS.Controls"
+             AllowDrop="True" Drop="OnFilesDropped" DragOver="OnDragOver" DragLeave="OnDragLeave">
+
+    <Grid Margin="28,0,20,24">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="232" />
+            <ColumnDefinition Width="*" MinWidth="420" />
+            <ColumnDefinition Width="330" />
+        </Grid.ColumnDefinitions>
+
+        <!-- ================= SHELVES ================= -->
+        <Border Grid.Column="0" Style="{StaticResource Panel}" Margin="0,0,14,0" VerticalAlignment="Stretch">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="*" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+
+                <StackPanel Grid.Row="0">
+                    <TextBlock Style="{StaticResource SectionLabel}" ctrl:Tracking.Text="VIEWS" />
+                    <ItemsControl ItemsSource="{Binding Scopes}" Margin="0,10,0,0">
+                        <ItemsControl.ItemsPanel>
+                            <ItemsPanelTemplate><WrapPanel /></ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <ToggleButton Style="{StaticResource Chip}" Content="{Binding}"
+                                              Command="{Binding DataContext.SetScopeCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                              CommandParameter="{Binding}">
+                                    <ToggleButton.IsChecked>
+                                        <MultiBinding Converter="{StaticResource MultiEq}" Mode="OneWay">
+                                            <Binding />
+                                            <Binding Path="DataContext.Scope"
+                                                     RelativeSource="{RelativeSource AncestorType=UserControl}" />
+                                        </MultiBinding>
+                                    </ToggleButton.IsChecked>
+                                </ToggleButton>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+
+                    <Border Style="{StaticResource Divider}" Margin="0,14,0,12" />
+                    <TextBlock Style="{StaticResource SectionLabel}" ctrl:Tracking.Text="SHELVES" />
+                </StackPanel>
+
+                <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" Margin="0,10,0,0">
+                    <ItemsControl ItemsSource="{Binding Folders}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <RadioButton GroupName="Shelf" Style="{StaticResource RowButton}"
+                                             Command="{Binding DataContext.SelectFolderCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                             CommandParameter="{Binding}">
+                                    <RadioButton.IsChecked>
+                                        <MultiBinding Converter="{StaticResource SameObj}" Mode="OneWay">
+                                            <Binding />
+                                            <Binding Path="DataContext.SelectedFolder"
+                                                     RelativeSource="{RelativeSource AncestorType=UserControl}" />
+                                        </MultiBinding>
+                                    </RadioButton.IsChecked>
+
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto" />
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="Auto" />
+                                        </Grid.ColumnDefinitions>
+
+                                        <TextBlock Grid.Column="0"
+                                                   Text="{Binding Glyph, Converter={StaticResource Glyph}}"
+                                                   FontFamily="{StaticResource FontIcon}" FontSize="12"
+                                                   VerticalAlignment="Center" Margin="0,0,11,0"
+                                                   Foreground="{StaticResource BrushTextDim}" />
+                                        <TextBlock Grid.Column="1" Text="{Binding Name}"
+                                                   Style="{StaticResource Cell}" FontSize="11.5" />
+                                        <TextBlock Grid.Column="2" Text="{Binding ItemCount}"
+                                                   Style="{StaticResource CellDim}" FontSize="9.5" />
+                                    </Grid>
+                                </RadioButton>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </ScrollViewer>
+
+                <StackPanel Grid.Row="2">
+                    <Border Style="{StaticResource Divider}" Margin="0,12,0,12" />
+                    <TextBox Style="{StaticResource Input}" Padding="10,7"
+                             Text="{Binding NewFolderName, UpdateSourceTrigger=PropertyChanged}"
+                             ToolTip="Name for a new folder" />
+                    <Button Style="{StaticResource BtnSmall}" Content="CREATE FOLDER" Margin="0,8,0,0"
+                            HorizontalAlignment="Stretch" Command="{Binding NewFolderCommand}" />
+
+                    <Border Style="{StaticResource Divider}" Margin="0,12,0,10" />
+                    <UniformGrid Columns="2">
+                        <StackPanel>
+                            <TextBlock Text="{Binding TotalCount}" Style="{StaticResource Mono}"
+                                       FontSize="15" FontWeight="SemiBold" />
+                            <TextBlock Style="{StaticResource MetricLabel}" FontSize="7.5"
+                                       ctrl:Tracking.Text="FILES" />
+                        </StackPanel>
+                        <StackPanel>
+                            <TextBlock Text="{Binding TotalSizeDisplay}" Style="{StaticResource Mono}"
+                                       FontSize="15" FontWeight="SemiBold" />
+                            <TextBlock Style="{StaticResource MetricLabel}" FontSize="7.5"
+                                       ctrl:Tracking.Text="VAULT SIZE" />
+                        </StackPanel>
+                    </UniformGrid>
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <!-- ================= FILE TABLE ================= -->
+        <Grid Grid.Column="1" Margin="0,0,14,0">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="*" />
+            </Grid.RowDefinitions>
+
+            <Border Grid.Row="0" Style="{StaticResource Panel}" Padding="16">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+
+                    <Grid Grid.Column="0" Margin="0,0,12,0">
+                        <TextBox Style="{StaticResource Input}" Padding="34,8,10,8"
+                                 Text="{Binding Search, UpdateSourceTrigger=PropertyChanged, Delay=140}" />
+                        <TextBlock Text="{ctrl:Glyph Search}" FontFamily="{StaticResource FontIcon}" FontSize="12"
+                                   Margin="12,0,0,0" VerticalAlignment="Center" IsHitTestVisible="False"
+                                   Foreground="{StaticResource BrushTextMuted}" />
+                        <TextBlock Text="Search names, types and document text" IsHitTestVisible="False"
+                                   Margin="34,0,0,0" VerticalAlignment="Center" FontSize="12"
+                                   Foreground="{StaticResource BrushTextMuted}"
+                                   Visibility="{Binding Search, Converter={StaticResource StrToVisInv}}" />
+                    </Grid>
+
+                    <StackPanel Grid.Column="1" Orientation="Horizontal">
+                        <Button Style="{StaticResource BtnPrimary}" Padding="14,8" Command="{Binding UploadCommand}">
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="{ctrl:Glyph Upload}" FontFamily="{StaticResource FontIcon}"
+                                           FontSize="11" VerticalAlignment="Center" />
+                                <TextBlock Text="UPLOAD" Margin="8,0,0,0" FontSize="10" FontWeight="SemiBold"
+                                           VerticalAlignment="Center" />
+                            </StackPanel>
+                        </Button>
+                        <Button Style="{StaticResource BtnSmall}" Content="NEW DOCUMENT" Margin="8,0,0,0"
+                                Command="{Binding NewDocumentCommand}" />
+                        <Button Style="{StaticResource BtnSmallGhost}" Content="EMPTY TRASH" Margin="8,0,0,0"
+                                Command="{Binding EmptyTrashCommand}"
+                                Visibility="{Binding IsTrashView, Converter={StaticResource BoolToVis}}" />
+                    </StackPanel>
+                </Grid>
+            </Border>
+
+            <Border Grid.Row="1" Style="{StaticResource Panel}" Margin="0,14,0,0" Padding="14,14,8,14">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                    </Grid.RowDefinitions>
+
+                    <Border Grid.Row="0" Style="{StaticResource TableHeaderBar}" Margin="0,0,6,4">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="30" />
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="120" />
+                                <ColumnDefinition Width="80" />
+                                <ColumnDefinition Width="100" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Grid.Column="1" Style="{StaticResource ColHead}" ctrl:Tracking.Text="NAME" />
+                            <TextBlock Grid.Column="2" Style="{StaticResource ColHead}" ctrl:Tracking.Text="TYPE" />
+                            <TextBlock Grid.Column="3" Style="{StaticResource ColHead}" ctrl:Tracking.Text="SIZE" />
+                            <TextBlock Grid.Column="4" Style="{StaticResource ColHead}" ctrl:Tracking.Text="MODIFIED" />
+                            <TextBlock Grid.Column="5" Style="{StaticResource ColHead}" ctrl:Tracking.Text="PIN" />
+                        </Grid>
+                    </Border>
+
+                    <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+                        <StackPanel>
+                            <ItemsControl ItemsSource="{Binding Visible}" Margin="0,0,6,0">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <RadioButton GroupName="FileRow" Style="{StaticResource RowButton}"
+                                                     Command="{Binding DataContext.SelectFileCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                     CommandParameter="{Binding}">
+                                            <RadioButton.IsChecked>
+                                                <MultiBinding Converter="{StaticResource SameObj}" Mode="OneWay">
+                                                    <Binding />
+                                                    <Binding Path="DataContext.Selected"
+                                                             RelativeSource="{RelativeSource AncestorType=UserControl}" />
+                                                </MultiBinding>
+                                            </RadioButton.IsChecked>
+
+                                            <Grid>
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="30" />
+                                                    <ColumnDefinition Width="*" />
+                                                    <ColumnDefinition Width="120" />
+                                                    <ColumnDefinition Width="80" />
+                                                    <ColumnDefinition Width="100" />
+                                                    <ColumnDefinition Width="Auto" />
+                                                </Grid.ColumnDefinitions>
+
+                                                <TextBlock Grid.Column="0"
+                                                           Text="{Binding Glyph, Converter={StaticResource Glyph}}"
+                                                           FontFamily="{StaticResource FontIcon}" FontSize="13"
+                                                           VerticalAlignment="Center"
+                                                           Foreground="{StaticResource BrushAccent}" />
+
+                                                <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="0,0,10,0">
+                                                    <TextBlock Text="{Binding Name}" Style="{StaticResource Cell}"
+                                                               FontWeight="SemiBold" />
+                                                    <TextBlock Text="{Binding OpenCountDisplay}"
+                                                               Style="{StaticResource CellDim}" FontSize="9" />
+                                                </StackPanel>
+
+                                                <TextBlock Grid.Column="2" Text="{Binding TypeLabel}"
+                                                           Style="{StaticResource CellDim}" />
+                                                <TextBlock Grid.Column="3" Text="{Binding SizeDisplay}"
+                                                           Style="{StaticResource CellMono}" />
+                                                <TextBlock Grid.Column="4" Text="{Binding ModifiedDisplay}"
+                                                           Style="{StaticResource CellMono}" FontSize="10" />
+
+                                                <Button Grid.Column="5" Style="{StaticResource BtnIcon}"
+                                                        Width="26" Height="26" ToolTip="Pin"
+                                                        Content="{Binding PinGlyph, Converter={StaticResource Glyph}}"
+                                                        Command="{Binding DataContext.PinCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                        CommandParameter="{Binding}" />
+                                            </Grid>
+                                        </RadioButton>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+
+                            <Border Style="{StaticResource InsetPanel}" Padding="20,26" Margin="0,10,6,0"
+                                    Visibility="{Binding Visible.Count, Converter={StaticResource CountToVisInv}}">
+                                <StackPanel HorizontalAlignment="Center">
+                                    <TextBlock Text="{ctrl:Glyph Upload}" FontFamily="{StaticResource FontIcon}"
+                                               FontSize="22" HorizontalAlignment="Center"
+                                               Foreground="{StaticResource BrushTextMuted}" />
+                                    <TextBlock Text="NOTHING ON THIS SHELF" Style="{StaticResource SectionLabel}"
+                                               HorizontalAlignment="Center" Margin="0,12,0,0" />
+                                    <TextBlock Text="Drag files anywhere on this page, or use UPLOAD."
+                                               Style="{StaticResource Muted}" FontSize="10.5"
+                                               HorizontalAlignment="Center" Margin="0,7,0,0" />
+                                </StackPanel>
+                            </Border>
+                        </StackPanel>
+                    </ScrollViewer>
+                </Grid>
+            </Border>
+
+            <!-- Drop affordance -->
+            <Border x:Name="DropHint" Grid.RowSpan="2" CornerRadius="10" BorderThickness="2"
+                    Background="{StaticResource BrushAccentFaint}"
+                    BorderBrush="{StaticResource BrushAccent}"
+                    Visibility="Collapsed" IsHitTestVisible="False">
+                <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
+                    <TextBlock Text="{ctrl:Glyph Upload}" FontFamily="{StaticResource FontIcon}" FontSize="26"
+                               HorizontalAlignment="Center" Foreground="{StaticResource BrushAccent}" />
+                    <TextBlock Text="RELEASE TO IMPORT INTO NEXUS" Style="{StaticResource SectionLabel}"
+                               Margin="0,14,0,0" HorizontalAlignment="Center"
+                               Foreground="{StaticResource BrushAccent}" />
+                    <TextBlock Text="{Binding LocationLabel}" Style="{StaticResource Muted}" FontSize="10.5"
+                               Margin="0,7,0,0" HorizontalAlignment="Center" />
+                </StackPanel>
+            </Border>
+        </Grid>
+
+        <!-- ================= INSPECTOR ================= -->
+        <ScrollViewer Grid.Column="2" VerticalScrollBarVisibility="Auto" Padding="0,0,8,0">
+            <StackPanel>
+
+                <Border Style="{StaticResource Panel}"
+                        Visibility="{Binding HasSelection, Converter={StaticResource BoolToVis}}">
+                    <StackPanel>
+                        <StackPanel Orientation="Horizontal">
+                            <Border Width="40" Height="40" CornerRadius="8"
+                                    Background="{StaticResource BrushPanelAlt}" BorderThickness="1"
+                                    BorderBrush="{StaticResource BrushBorder}">
+                                <TextBlock Text="{Binding Selected.Glyph, Converter={StaticResource Glyph}}"
+                                           FontFamily="{StaticResource FontIcon}" FontSize="17"
+                                           HorizontalAlignment="Center" VerticalAlignment="Center"
+                                           Foreground="{StaticResource BrushAccent}" />
+                            </Border>
+                            <StackPanel Margin="14,0,0,0" VerticalAlignment="Center" MaxWidth="210">
+                                <TextBlock Text="{Binding Selected.Name}" FontSize="13" FontWeight="SemiBold"
+                                           TextTrimming="CharacterEllipsis" />
+                                <TextBlock Text="{Binding Selected.TypeLabel}" Style="{StaticResource CellDim}"
+                                           Margin="0,4,0,0" />
+                            </StackPanel>
+                        </StackPanel>
+
+                        <Border Style="{StaticResource Divider}" Margin="0,14,0,12" />
+
+                        <UniformGrid Columns="2">
+                            <StackPanel Margin="0,0,10,12">
+                                <TextBlock Style="{StaticResource SectionLabel}" ctrl:Tracking.Text="SIZE" />
+                                <TextBlock Text="{Binding Selected.SizeDisplay}" Style="{StaticResource CellMono}"
+                                           Margin="0,4,0,0" />
+                            </StackPanel>
+                            <StackPanel Margin="0,0,0,12">
+                                <TextBlock Style="{StaticResource SectionLabel}" ctrl:Tracking.Text="MODIFIED" />
+                                <TextBlock Text="{Binding Selected.ModifiedDisplay}" Style="{StaticResource CellMono}"
+                                           Margin="0,4,0,0" />
+                            </StackPanel>
+                        </UniformGrid>
+
+                        <TextBlock Style="{StaticResource SectionLabel}" ctrl:Tracking.Text="LOCATION" />
+                        <TextBlock Text="{Binding SelectedLocation}" Style="{StaticResource Cell}"
+                                   FontSize="10.5" TextWrapping="Wrap" Margin="0,4,0,12" />
+
+                        <TextBlock Style="{StaticResource SectionLabel}" ctrl:Tracking.Text="RENAME" />
+                        <Grid Margin="0,6,0,0">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <TextBox Grid.Column="0" Style="{StaticResource Input}" Margin="0,0,8,0"
+                                     Text="{Binding RenameBuffer, UpdateSourceTrigger=PropertyChanged}" />
+                            <Button Grid.Column="1" Style="{StaticResource BtnSmall}" Content="APPLY"
+                                    Command="{Binding RenameCommand}" />
+                        </Grid>
+
+                        <Border Style="{StaticResource Divider}" Margin="0,14,0,12" />
+
+                        <WrapPanel>
+                            <Button Style="{StaticResource BtnSmall}" Content="OPEN" Margin="0,0,8,8"
+                                    Command="{Binding OpenCommand}" />
+                            <Button Style="{StaticResource BtnSmallGhost}" Content="SAVE A COPY" Margin="0,0,8,8"
+                                    Command="{Binding ExportCommand}" />
+                            <Button Style="{StaticResource BtnSmallGhost}" Content="RESTORE" Margin="0,0,8,8"
+                                    Command="{Binding RestoreCommand}"
+                                    Visibility="{Binding IsTrashView, Converter={StaticResource BoolToVis}}" />
+                            <Button Style="{StaticResource BtnSmallGhost}" Content="TRASH" Margin="0,0,8,8"
+                                    Command="{Binding DeleteCommand}"
+                                    Visibility="{Binding IsTrashView, Converter={StaticResource BoolToVisInv}}" />
+                            <Button Style="{StaticResource BtnDanger}" Content="DELETE FOREVER"
+                                    Padding="12,6" FontSize="9.5" Margin="0,0,0,8"
+                                    Command="{Binding PurgeCommand}"
+                                    Visibility="{Binding IsTrashView, Converter={StaticResource BoolToVis}}" />
+                        </WrapPanel>
+                    </StackPanel>
+                </Border>
+
+                <!-- Preview -->
+                <Border Style="{StaticResource Panel}" Margin="0,14,0,0"
+                        Visibility="{Binding HasSelection, Converter={StaticResource BoolToVis}}">
+                    <StackPanel>
+                        <TextBlock Style="{StaticResource SectionLabel}" ctrl:Tracking.Text="PREVIEW" />
+
+                        <Border Style="{StaticResource InsetPanel}" Padding="12,10" Margin="0,10,0,0" MaxHeight="240"
+                                Visibility="{Binding CanPreviewText, Converter={StaticResource BoolToVis}}">
+                            <ScrollViewer VerticalScrollBarVisibility="Auto">
+                                <TextBlock Text="{Binding PreviewText}" Style="{StaticResource ConsoleText}"
+                                           FontSize="10.5" TextWrapping="Wrap"
+                                           Foreground="{StaticResource BrushTextDim}" />
+                            </ScrollViewer>
+                        </Border>
+
+                        <Border Margin="0,10,0,0" CornerRadius="6" ClipToBounds="True" MaxHeight="240"
+                                Visibility="{Binding CanPreviewImage, Converter={StaticResource BoolToVis}}">
+                            <Image Source="{Binding SelectedPath}" Stretch="Uniform"
+                                   RenderOptions.BitmapScalingMode="HighQuality" />
+                        </Border>
+
+                        <Border Style="{StaticResource InsetPanel}" Padding="12,10" Margin="0,10,0,0"
+                                Visibility="{Binding PreviewNotice, Converter={StaticResource StrToVis}}">
+                            <TextBlock Text="{Binding PreviewNotice}" Style="{StaticResource Muted}"
+                                       FontSize="10.5" TextWrapping="Wrap" />
+                        </Border>
+                    </StackPanel>
+                </Border>
+
+                <!-- File activity -->
+                <Border Style="{StaticResource Panel}" Margin="0,14,0,0"
+                        Visibility="{Binding SelectedActivity.Count, Converter={StaticResource CountToVis}}">
+                    <StackPanel>
+                        <TextBlock Style="{StaticResource SectionLabel}" ctrl:Tracking.Text="FILE ACTIVITY" />
+                        <ItemsControl ItemsSource="{Binding SelectedActivity}" Margin="0,10,0,0">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Grid Margin="0,0,0,9">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="62" />
+                                            <ColumnDefinition Width="*" />
+                                        </Grid.ColumnDefinitions>
+                                        <TextBlock Grid.Column="0" Text="{Binding TimeDisplay}"
+                                                   Style="{StaticResource CellMono}" VerticalAlignment="Top" />
+                                        <TextBlock Grid.Column="1" Text="{Binding Message}" FontSize="10.5"
+                                                   TextWrapping="Wrap" />
+                                    </Grid>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </StackPanel>
+                </Border>
+
+                <!-- Quick lists -->
+                <Border Style="{StaticResource Panel}" Margin="0,14,0,0">
+                    <StackPanel>
+                        <TextBlock Style="{StaticResource SectionLabel}" ctrl:Tracking.Text="PINNED" />
+                        <ItemsControl ItemsSource="{Binding PinnedFiles}" Margin="0,10,0,0">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Button Style="{StaticResource RowItem}" Padding="8,6" Margin="0,0,0,2"
+                                            Command="{Binding DataContext.SelectFileCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                            CommandParameter="{Binding}">
+                                        <StackPanel Orientation="Horizontal">
+                                            <TextBlock Text="{Binding Glyph, Converter={StaticResource Glyph}}"
+                                                       FontFamily="{StaticResource FontIcon}" FontSize="11"
+                                                       VerticalAlignment="Center" Margin="0,0,10,0"
+                                                       Foreground="{StaticResource BrushAccent}" />
+                                            <TextBlock Text="{Binding Name}" Style="{StaticResource Cell}"
+                                                       FontSize="11" MaxWidth="210"
+                                                       TextTrimming="CharacterEllipsis" />
+                                        </StackPanel>
+                                    </Button>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                        <TextBlock Text="Nothing pinned yet." Style="{StaticResource Muted}" FontSize="10"
+                                   Margin="0,8,0,0"
+                                   Visibility="{Binding PinnedFiles.Count, Converter={StaticResource CountToVisInv}}" />
+
+                        <Border Style="{StaticResource Divider}" Margin="0,14,0,12" />
+
+                        <TextBlock Style="{StaticResource SectionLabel}" ctrl:Tracking.Text="FREQUENTLY USED" />
+                        <ItemsControl ItemsSource="{Binding FrequentFiles}" Margin="0,10,0,0">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Button Style="{StaticResource RowItem}" Padding="8,6" Margin="0,0,0,2"
+                                            Command="{Binding DataContext.SelectFileCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                            CommandParameter="{Binding}">
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*" />
+                                                <ColumnDefinition Width="Auto" />
+                                            </Grid.ColumnDefinitions>
+                                            <TextBlock Grid.Column="0" Text="{Binding Name}"
+                                                       Style="{StaticResource Cell}" FontSize="11"
+                                                       TextTrimming="CharacterEllipsis" Margin="0,0,8,0" />
+                                            <TextBlock Grid.Column="1" Text="{Binding OpenCount}"
+                                                       Style="{StaticResource CellMono}" FontSize="10" />
+                                        </Grid>
+                                    </Button>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                        <TextBlock Text="No usage recorded yet." Style="{StaticResource Muted}" FontSize="10"
+                                   Margin="0,8,0,0"
+                                   Visibility="{Binding FrequentFiles.Count, Converter={StaticResource CountToVisInv}}" />
+                    </StackPanel>
+                </Border>
+
+                <Border Style="{StaticResource InsetPanel}" Padding="14,12" Margin="0,14,0,0">
+                    <StackPanel>
+                        <TextBlock Style="{StaticResource SectionLabel}" ctrl:Tracking.Text="VAULT" />
+                        <TextBlock Text="{Binding VaultRoot}" Style="{StaticResource CellMono}" FontSize="9.5"
+                                   TextWrapping="Wrap" Margin="0,7,0,0" />
+                        <TextBlock Style="{StaticResource Muted}" FontSize="10" TextWrapping="Wrap" Margin="0,8,0,0"
+                                   Text="Uploaded files are copied here, so the catalogue keeps working even if the original moves." />
+                    </StackPanel>
+                </Border>
+            </StackPanel>
+        </ScrollViewer>
+    </Grid>
+</UserControl>
