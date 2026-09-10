@@ -1,0 +1,272 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:ctrl="clr-namespace:NEXUS.Controls">
+
+    <!-- Small outlined badge, coloured by whatever brush is supplied through Tag -->
+    <Style x:Key="Badge" TargetType="Border">
+        <Setter Property="CornerRadius" Value="4" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="Padding" Value="7,2" />
+        <Setter Property="VerticalAlignment" Value="Center" />
+    </Style>
+
+    <!-- ============================ FULL TASK CARD ============================ -->
+    <DataTemplate x:Key="TaskCardTemplate">
+        <Border Margin="0,0,0,10" CornerRadius="10" ClipToBounds="True"
+                Background="{StaticResource BrushPanelGradient}"
+                BorderBrush="{StaticResource BrushBorder}" BorderThickness="1"
+                Opacity="{Binding IsCompleted, Converter={StaticResource DoneOpacity}}">
+            <Grid>
+                <!-- Flash layer, driven only by a real transition to Completed -->
+                <Border x:Name="Flash" Opacity="0" IsHitTestVisible="False" CornerRadius="10"
+                        Background="{StaticResource BrushAccentGlow}"
+                        ctrl:CompletionFlash.Target="{Binding}" />
+
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="4" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+
+                    <Border Grid.Column="0" Background="{Binding Priority, Converter={StaticResource PriorityBrush}}" />
+
+                    <StackPanel Grid.Column="1" Margin="16,14,14,14">
+
+                        <!-- Title row -->
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+
+                            <StackPanel Grid.Column="0" VerticalAlignment="Center">
+                                <TextBlock Text="{Binding Title}" FontSize="14" FontWeight="SemiBold"
+                                           TextTrimming="CharacterEllipsis"
+                                           ToolTip="{Binding Title}" />
+
+                                <StackPanel Orientation="Horizontal" Margin="0,8,0,0">
+                                    <Border Style="{StaticResource Badge}"
+                                            BorderBrush="{Binding Priority, Converter={StaticResource PriorityBrush}}"
+                                            Background="Transparent">
+                                        <TextBlock Text="{Binding PriorityLabel}" FontSize="9.5" FontWeight="SemiBold"
+                                                   Foreground="{Binding Priority, Converter={StaticResource PriorityBrush}}" />
+                                    </Border>
+
+                                    <Border Style="{StaticResource Badge}" Margin="6,0,0,0"
+                                            BorderBrush="{Binding State, Converter={StaticResource StateBrush}}"
+                                            Background="Transparent">
+                                        <TextBlock Text="{Binding StateLabel}" FontSize="9.5" FontWeight="SemiBold"
+                                                   Foreground="{Binding State, Converter={StaticResource StateBrush}}" />
+                                    </Border>
+
+                                    <StackPanel Orientation="Horizontal" Margin="10,0,0,0" VerticalAlignment="Center">
+                                        <TextBlock Text="{ctrl:Glyph Calendar}" FontFamily="{StaticResource FontIcon}" FontSize="10"
+                                                   VerticalAlignment="Center"
+                                                   Foreground="{StaticResource BrushTextMuted}" />
+                                        <TextBlock x:Name="DeadlineText" Text="{Binding DeadlineDisplay}"
+                                                   FontSize="10" Margin="6,0,0,0" VerticalAlignment="Center"
+                                                   Foreground="{StaticResource BrushTextMuted}" />
+                                    </StackPanel>
+
+                                    <StackPanel Orientation="Horizontal" Margin="10,0,0,0" VerticalAlignment="Center"
+                                                Visibility="{Binding HasSubTasks, Converter={StaticResource BoolToVis}}">
+                                        <TextBlock Text="{ctrl:Glyph Filter}" FontFamily="{StaticResource FontIcon}" FontSize="10"
+                                                   VerticalAlignment="Center"
+                                                   Foreground="{StaticResource BrushTextMuted}" />
+                                        <TextBlock Text="{Binding SubTaskSummary}" FontSize="10" Margin="6,0,0,0"
+                                                   VerticalAlignment="Center"
+                                                   Foreground="{StaticResource BrushTextMuted}" />
+                                    </StackPanel>
+                                </StackPanel>
+                            </StackPanel>
+
+                            <!-- Actions -->
+                            <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Top">
+                                <Button Style="{StaticResource BtnIcon}" Content="{ctrl:Glyph Check}"
+                                        ToolTip="Toggle complete"
+                                        Command="{Binding DataContext.Commands.ToggleCompleteCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                        CommandParameter="{Binding}" />
+                                <Button Style="{StaticResource BtnIcon}" Content="{ctrl:Glyph Focus}"
+                                        ToolTip="Start a focus session on this task"
+                                        Command="{Binding DataContext.Commands.FocusCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                        CommandParameter="{Binding}" />
+                                <Button Style="{StaticResource BtnIcon}" Content="{ctrl:Glyph Edit}"
+                                        ToolTip="Edit"
+                                        Command="{Binding DataContext.Commands.EditCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                        CommandParameter="{Binding}" />
+                                <Button Style="{StaticResource BtnIcon}" Content="{ctrl:Glyph Delete}"
+                                        ToolTip="Delete"
+                                        Command="{Binding DataContext.Commands.DeleteCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                        CommandParameter="{Binding}" />
+                                <ToggleButton x:Name="ExpandToggle" Width="30" Height="30" Cursor="Hand"
+                                              Background="Transparent" BorderThickness="0"
+                                              Visibility="{Binding HasDetail, Converter={StaticResource BoolToVis}}"
+                                              ToolTip="Show details">
+                                    <ToggleButton.Template>
+                                        <ControlTemplate TargetType="ToggleButton">
+                                            <Border x:Name="Root" Background="Transparent" CornerRadius="6">
+                                                <TextBlock x:Name="Chev" Text="{ctrl:Glyph Chevron}" FontFamily="{StaticResource FontIcon}"
+                                                           FontSize="10" HorizontalAlignment="Center" VerticalAlignment="Center"
+                                                           Foreground="{StaticResource BrushTextMuted}"
+                                                           RenderTransformOrigin="0.5,0.5">
+                                                    <TextBlock.RenderTransform>
+                                                        <RotateTransform x:Name="Rot" Angle="0" />
+                                                    </TextBlock.RenderTransform>
+                                                </TextBlock>
+                                            </Border>
+                                            <ControlTemplate.Triggers>
+                                                <Trigger Property="IsMouseOver" Value="True">
+                                                    <Setter TargetName="Root" Property="Background" Value="{StaticResource BrushAccentFaint}" />
+                                                    <Setter TargetName="Chev" Property="Foreground" Value="{StaticResource BrushAccent}" />
+                                                </Trigger>
+                                                <Trigger Property="IsChecked" Value="True">
+                                                    <Trigger.EnterActions>
+                                                        <BeginStoryboard>
+                                                            <Storyboard>
+                                                                <DoubleAnimation Storyboard.TargetName="Rot"
+                                                                                 Storyboard.TargetProperty="Angle"
+                                                                                 To="180" Duration="0:0:0.18" />
+                                                            </Storyboard>
+                                                        </BeginStoryboard>
+                                                    </Trigger.EnterActions>
+                                                    <Trigger.ExitActions>
+                                                        <BeginStoryboard>
+                                                            <Storyboard>
+                                                                <DoubleAnimation Storyboard.TargetName="Rot"
+                                                                                 Storyboard.TargetProperty="Angle"
+                                                                                 To="0" Duration="0:0:0.18" />
+                                                            </Storyboard>
+                                                        </BeginStoryboard>
+                                                    </Trigger.ExitActions>
+                                                </Trigger>
+                                            </ControlTemplate.Triggers>
+                                        </ControlTemplate>
+                                    </ToggleButton.Template>
+                                </ToggleButton>
+                            </StackPanel>
+                        </Grid>
+
+                        <!-- Progress -->
+                        <Grid Margin="0,14,0,0">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+
+                            <Grid Grid.Column="0" Height="4" VerticalAlignment="Center">
+                                <Border Style="{StaticResource SlimBar}" />
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="{Binding ProgressFraction, Converter={StaticResource FracStar}}" />
+                                        <ColumnDefinition Width="{Binding ProgressFraction, Converter={StaticResource FracStarRem}}" />
+                                    </Grid.ColumnDefinitions>
+                                    <Border Grid.Column="0" Height="4" CornerRadius="2"
+                                            Background="{Binding State, Converter={StaticResource StateBrush}}" />
+                                </Grid>
+                            </Grid>
+
+                            <TextBlock Grid.Column="1" Text="{Binding Progress, StringFormat={}{0}%}"
+                                       Style="{StaticResource Mono}" FontSize="10.5" Margin="12,0,0,0"
+                                       Foreground="{StaticResource BrushTextMuted}" VerticalAlignment="Center" />
+                        </Grid>
+
+                        <!-- Detail -->
+                        <StackPanel Margin="0,14,0,0"
+                                    Visibility="{Binding IsChecked, ElementName=ExpandToggle, Converter={StaticResource BoolToVis}}">
+                            <Border Style="{StaticResource Divider}" Margin="0,0,0,12" />
+
+                            <StackPanel Visibility="{Binding HasNotes, Converter={StaticResource BoolToVis}}"
+                                        Margin="0,0,0,12">
+                                <TextBlock Style="{StaticResource SectionLabel}" ctrl:Tracking.Text="NOTES" />
+                                <TextBlock Text="{Binding Notes}" Style="{StaticResource Caption}"
+                                           TextWrapping="Wrap" Margin="0,6,0,0" />
+                            </StackPanel>
+
+                            <StackPanel Visibility="{Binding HasSubTasks, Converter={StaticResource BoolToVis}}">
+                                <TextBlock Style="{StaticResource SectionLabel}" ctrl:Tracking.Text="SUBTASKS" />
+                                <ItemsControl ItemsSource="{Binding SubTasks}" Margin="0,8,0,0">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <CheckBox Style="{StaticResource Check}" Margin="0,0,0,7"
+                                                      IsChecked="{Binding IsDone, Mode=TwoWay}"
+                                                      Content="{Binding Title}"
+                                                      Command="{Binding DataContext.Commands.ToggleSubTaskCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" />
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </StackPanel>
+                        </StackPanel>
+                    </StackPanel>
+                </Grid>
+            </Grid>
+        </Border>
+
+        <DataTemplate.Triggers>
+            <DataTrigger Binding="{Binding IsOverdue}" Value="True">
+                <Setter TargetName="DeadlineText" Property="Foreground" Value="{StaticResource BrushCritical}" />
+                <Setter TargetName="DeadlineText" Property="FontWeight" Value="SemiBold" />
+            </DataTrigger>
+        </DataTemplate.Triggers>
+    </DataTemplate>
+
+    <!-- ============================ COMPACT ROW ============================ -->
+    <DataTemplate x:Key="TaskRowTemplate">
+        <Border Margin="0,0,0,7" CornerRadius="8" Padding="0" ClipToBounds="True"
+                Background="{StaticResource BrushPanelAlt}"
+                BorderBrush="{StaticResource BrushBorderSoft}" BorderThickness="1">
+            <Grid>
+                <Border x:Name="Flash" Opacity="0" IsHitTestVisible="False" CornerRadius="8"
+                        Background="{StaticResource BrushAccentGlow}"
+                        ctrl:CompletionFlash.Target="{Binding}" />
+
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="3" />
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+
+                    <Border Grid.Column="0" Background="{Binding Priority, Converter={StaticResource PriorityBrush}}" />
+
+                    <StackPanel Grid.Column="1" Margin="14,10,10,10">
+                        <TextBlock Text="{Binding Title}" FontSize="12.5" FontWeight="SemiBold"
+                                   TextTrimming="CharacterEllipsis" />
+                        <StackPanel Orientation="Horizontal" Margin="0,6,0,0">
+                            <Ellipse Width="6" Height="6" VerticalAlignment="Center"
+                                     Fill="{Binding State, Converter={StaticResource StateBrush}}" />
+                            <TextBlock Text="{Binding StateLabel}" FontSize="9.5" Margin="7,0,0,0"
+                                       VerticalAlignment="Center"
+                                       Foreground="{StaticResource BrushTextMuted}" />
+                            <Border Width="1" Height="9" Background="{StaticResource BrushBorder}" Margin="9,0" />
+                            <TextBlock x:Name="RowDeadline" Text="{Binding DeadlineDisplay}" FontSize="9.5"
+                                       VerticalAlignment="Center"
+                                       Foreground="{StaticResource BrushTextMuted}" />
+                            <TextBlock Text="{Binding Progress, StringFormat={}{0}%}" FontSize="9.5"
+                                       Margin="9,0,0,0" VerticalAlignment="Center"
+                                       Style="{StaticResource Mono}"
+                                       Foreground="{StaticResource BrushTextMuted}" />
+                        </StackPanel>
+                    </StackPanel>
+
+                    <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center" Margin="0,0,6,0">
+                        <Button Style="{StaticResource BtnIcon}" Content="{ctrl:Glyph Focus}" Width="26" Height="26"
+                                ToolTip="Focus on this task"
+                                Command="{Binding DataContext.Commands.FocusCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                CommandParameter="{Binding}" />
+                        <Button Style="{StaticResource BtnIcon}" Content="{ctrl:Glyph Check}" Width="26" Height="26"
+                                ToolTip="Mark complete"
+                                Command="{Binding DataContext.Commands.ToggleCompleteCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                CommandParameter="{Binding}" />
+                    </StackPanel>
+                </Grid>
+            </Grid>
+        </Border>
+
+        <DataTemplate.Triggers>
+            <DataTrigger Binding="{Binding IsOverdue}" Value="True">
+                <Setter TargetName="RowDeadline" Property="Foreground" Value="{StaticResource BrushCritical}" />
+            </DataTrigger>
+        </DataTemplate.Triggers>
+    </DataTemplate>
+
+</ResourceDictionary>
